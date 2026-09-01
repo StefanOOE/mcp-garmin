@@ -1,4 +1,4 @@
-"""Token-Handling + Casing + Fehler-Kaskade für Garmin API."""
+"""Token handling + casing + error cascade for the Garmin API."""
 from __future__ import annotations
 
 from collections.abc import Callable
@@ -15,11 +15,11 @@ _client: garth.http.Client | None = None
 
 
 class ToolError(Exception):
-    """Wird an MCP-Tools zurückgegeben wenn Garmin-API-Fehler auftreten."""
+    """Returned to MCP tools when a Garmin API error occurs."""
 
 
 def get_client() -> garth.http.Client:
-    """Lädt Token aus ~/.garth/ und gibt den garth Client zurück. Cached."""
+    """Load token from ~/.garth/ and return the cached garth client."""
     global _client
     if _client is not None:
         return _client
@@ -31,7 +31,7 @@ def get_client() -> garth.http.Client:
 
 
 def _to_dict(obj: Any) -> dict:
-    """Serialisiert ein Garmin-API-Objekt zu einem JSON-serialisierbaren dict (snake_case)."""
+    """Serialize a Garmin API object to a JSON-serializable dict (snake_case)."""
     if obj is None:
         return {}
     if isinstance(obj, dict):
@@ -40,7 +40,7 @@ def _to_dict(obj: Any) -> dict:
 
 
 def _handle_garmin_error(func: Callable) -> Callable:
-    """Decorator: fängt GarthException ab und wirft ToolError mit deutscher Meldung."""
+    """Decorator: catches GarthException and raises ToolError with a descriptive message."""
 
     @wraps(func)
     def wrapper(*args, **kwargs):
@@ -50,9 +50,9 @@ def _handle_garmin_error(func: Callable) -> Callable:
             msg = str(e)
             if "token" in msg.lower():
                 raise ToolError(
-                    f"Garmin-Token-Fehler: {msg}. "
-                    "Token abgelaufen — .venv/bin/python garmin_login.py ausführen."
+                    f"Garmin token error: {msg}. "
+                    "Token expired — run .venv/bin/python garmin_login.py."
                 ) from e
-            raise ToolError(f"Garmin-API-Fehler: {msg}") from e
+            raise ToolError(f"Garmin API error: {msg}") from e
 
     return wrapper

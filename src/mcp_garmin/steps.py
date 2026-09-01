@@ -1,4 +1,4 @@
-"""Schritt-Tools: Tages-/Wochen-Schritte, tägliche Zusammenfassung."""
+"""Steps tools: daily/weekly steps, daily summary."""
 from __future__ import annotations
 
 from .client import _handle_garmin_error, _to_dict, get_client
@@ -6,7 +6,7 @@ from .client import _handle_garmin_error, _to_dict, get_client
 
 @_handle_garmin_error
 def get_daily_steps(end: str | None = None) -> list[dict]:
-    """Schrittzahl der letzten 1 Tage (period=1, bis end, YYYY-MM-DD)."""
+    """Step count for the last day (period=1, up to end, YYYY-MM-DD)."""
     client = get_client()
     import garth
 
@@ -16,7 +16,7 @@ def get_daily_steps(end: str | None = None) -> list[dict]:
 
 @_handle_garmin_error
 def get_weekly_steps(end: str | None = None) -> list[dict]:
-    """Schrittzahl der letzten 7 Tage (period=7, bis end, YYYY-MM-DD)."""
+    """Step count for the last 7 days (period=7, up to end, YYYY-MM-DD)."""
     client = get_client()
     import garth
 
@@ -26,7 +26,7 @@ def get_weekly_steps(end: str | None = None) -> list[dict]:
 
 @_handle_garmin_error
 def get_daily_summary(day: str | None = None) -> dict:
-    """Tägliche Zusammenfassung für einen Tag (YYYY-MM-DD): Schritte, Kalorien, Herzfrequenz."""
+    """Daily summary for a day (YYYY-MM-DD): steps, calories, heart rate."""
     client = get_client()
     from garth.data import DailySummary
 
@@ -36,7 +36,7 @@ def get_daily_summary(day: str | None = None) -> dict:
 
 @_handle_garmin_error
 def get_daily_summary_history(end: str | None = None, days: int = 7) -> list[dict]:
-    """Tägliche Zusammenfassung der letzten N Tage (bis end, YYYY-MM-DD)."""
+    """Daily summary history for the last N days (up to end, YYYY-MM-DD)."""
     client = get_client()
     from garth.data import DailySummary
 

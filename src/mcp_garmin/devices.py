@@ -1,4 +1,4 @@
-"""Device-Tools: Geräteinfo und Geräte-Liste."""
+"""Device tools: device info and device list."""
 from __future__ import annotations
 
 from .client import _handle_garmin_error, _to_dict, get_client
@@ -6,7 +6,7 @@ from .client import _handle_garmin_error, _to_dict, get_client
 
 @_handle_garmin_error
 def get_device_info() -> dict:
-    """Aktives Garmin-Gerät: Typ, Name, Batteriestand."""
+    """Active Garmin device: type, name, battery level."""
     client = get_client()
     import garth
     from garth.utils import camel_to_snake_dict
@@ -27,7 +27,7 @@ def get_device_info() -> dict:
 
 @_handle_garmin_error
 def get_connected_devices() -> list[dict]:
-    """Liste aller verbundenen Garmin-Geräte."""
+    """List of all connected Garmin devices."""
     client = get_client()
     import garth
     from garth.utils import camel_to_snake_dict

@@ -52,7 +52,7 @@ mcp = MCPServer(
         "get_daily_heart_rate() for HR, get_daily_stress() for stress. "
         "All timestamps are ISO 8601 or YYYY-MM-DD date strings. "
         "Weight is in grams (e.g. 95010 = 95.01 kg). Steps are integers. "
-        "Calories are in kcal. If a tool returns a German ToolError message, "
+        "If a tool returns a ToolError, "
         "the Garmin token is likely expired — re-run garmin_login.py."
     ),
 )

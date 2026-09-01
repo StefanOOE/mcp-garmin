@@ -1,4 +1,4 @@
-"""Tests für mcp_garmin.nutrition."""
+"""Tests for mcp_garmin.nutrition."""
 from __future__ import annotations
 
 from unittest.mock import patch
@@ -61,7 +61,7 @@ def test_get_nutrition_log_no_day(monkeypatch, mock_client):
 
 
 def test_get_nutrition_status(monkeypatch, mock_client):
-    """NutritionStatus.get liefert dict → _to_dict zurück."""
+    """NutritionStatus.get returns dict → _to_dict returned."""
     import mcp_garmin.nutrition as nutrition
 
     fixture = {"target_calories": 2500, "consumed_calories": 1200, "target_protein": 160}
@@ -75,7 +75,7 @@ def test_get_nutrition_status(monkeypatch, mock_client):
 
 
 def test_get_nutrition_status_none(monkeypatch, mock_client):
-    """NutritionStatus.get liefert None → {} zurück."""
+    """NutritionStatus.get returns None → {} returned."""
     import mcp_garmin.nutrition as nutrition
 
     _patch_client(monkeypatch, mock_client)

@@ -1,4 +1,4 @@
-"""Tests für mcp_garmin.client."""
+"""Tests for mcp_garmin.client."""
 from __future__ import annotations
 
 import unittest.mock

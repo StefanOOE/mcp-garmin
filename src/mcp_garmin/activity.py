@@ -1,4 +1,4 @@
-"""Aktivitäts-Tools: Aktivitätsliste, Details, Karte, Fitness-Aktivitäten, Rekorde."""
+"""Activity tools: activity list, details, map, fitness activities, records."""
 from __future__ import annotations
 
 from .client import _handle_garmin_error, _to_dict, get_client
@@ -6,7 +6,7 @@ from .client import _handle_garmin_error, _to_dict, get_client
 
 @_handle_garmin_error
 def get_activities(limit: int = 20, start: int = 0) -> list[dict]:
-    """Liste der letzten Aktivitäten (limit/start-Pagination)."""
+    """List of recent activities (limit/start pagination)."""
     client = get_client()
     from garth.data import Activity
 
@@ -16,7 +16,7 @@ def get_activities(limit: int = 20, start: int = 0) -> list[dict]:
 
 @_handle_garmin_error
 def get_activity_detail(activity_id: int) -> dict:
-    """Details zu einer einzelnen Aktivität (activity_id)."""
+    """Details for a single activity (activity_id)."""
     client = get_client()
     from garth.data import Activity
 
@@ -26,7 +26,7 @@ def get_activity_detail(activity_id: int) -> dict:
 
 @_handle_garmin_error
 def get_activity_map(activity_id: int) -> dict:
-    """Kartendaten (GPS-Track) zu einer Aktivität (activity_id)."""
+    """Map data (GPS track) for an activity (activity_id)."""
     client = get_client()
     from garth.data import Activity
 
@@ -36,7 +36,7 @@ def get_activity_map(activity_id: int) -> dict:
 
 @_handle_garmin_error
 def get_fitness_activities(end: str | None = None, days: int = 7) -> list[dict]:
-    """Fitness-Aktivitäten (Schritte/Kalorien) der letzten N Tage (bis end)."""
+    """Fitness activities (steps/calories) for the last N days (up to end)."""
     client = get_client()
     from garth.data import FitnessActivity
 
@@ -46,7 +46,7 @@ def get_fitness_activities(end: str | None = None, days: int = 7) -> list[dict]:
 
 @_handle_garmin_error
 def get_personal_records() -> list[dict]:
-    """Alle persönlichen Rekorde."""
+    """All personal records."""
     client = get_client()
     from garth.data import PersonalRecord
 
@@ -56,7 +56,7 @@ def get_personal_records() -> list[dict]:
 
 @_handle_garmin_error
 def get_personal_record_types() -> list[dict]:
-    """Verfügbare Rekorde-Typen."""
+    """Available record types."""
     client = get_client()
     from garth.data import PersonalRecordType
 

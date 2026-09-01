@@ -1,11 +1,11 @@
-"""Schlaf-Tools: Schlafstadien, Detaildaten, Tägliche Zusammenfassung (Schlafteil)."""
+"""Sleep tools: sleep stages, detail data, daily summary (sleep part)."""
 from __future__ import annotations
 
 from typing import Any
 
 from .client import _handle_garmin_error, _to_dict, get_client
 
-# Felder in DailySummary, die schlafbezogen sind.
+# Fields in DailySummary that are sleep-related.
 _SLEEP_FIELDS = (
     "sleeping_seconds",
     "sleep_time_seconds",
@@ -35,7 +35,7 @@ _SLEEP_FIELDS = (
 
 @_handle_garmin_error
 def get_sleep(day: str | None = None) -> dict:
-    """Schlafdaten für einen Tag (YYYY-MM-DD) inkl. Schlafstadien-Zeiträume."""
+    """Sleep data for a day (YYYY-MM-DD) including sleep stage time blocks."""
     client = get_client()
     import garth
 
@@ -45,7 +45,7 @@ def get_sleep(day: str | None = None) -> dict:
 
 @_handle_garmin_error
 def get_sleep_detail(day: str | None = None) -> dict:
-    """Schlaf-Details (Tagesdaten) für einen Tag (YYYY-MM-DD)."""
+    """Sleep details (daily data) for a day (YYYY-MM-DD)."""
     client = get_client()
     from garth.data import DailySleepData
 
@@ -55,10 +55,10 @@ def get_sleep_detail(day: str | None = None) -> dict:
 
 @_handle_garmin_error
 def get_sleep_summary(day: str | None = None) -> dict:
-    """Tägliche Zusammenfassung für einen Tag (YYYY-MM-DD).
+    """Daily summary for a day (YYYY-MM-DD).
 
-    Liefert nur die schlafbezogenen Felder, sofern vorhanden, sonst das
-    vollständige Dict.
+    Returns only sleep-related fields if available, otherwise the
+    full dict.
     """
     client = get_client()
     from garth.data import DailySummary

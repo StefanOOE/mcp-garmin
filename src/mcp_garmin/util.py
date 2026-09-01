@@ -1,4 +1,4 @@
-"""Util-Tools: Benutzerprofil und Benutzer-Einstellungen."""
+"""Util tools: user profile and user settings."""
 from __future__ import annotations
 
 from .client import _handle_garmin_error, _to_dict, get_client
@@ -6,7 +6,7 @@ from .client import _handle_garmin_error, _to_dict, get_client
 
 @_handle_garmin_error
 def get_user_profile() -> dict:
-    """Garmin-Benutzerprofil: Name, E-Mail, Alter, Geschlecht, Körpergröße, Standort."""
+    """Garmin user profile: name, email, age, sex, height, location."""
     client = get_client()
     import garth
 
@@ -16,7 +16,7 @@ def get_user_profile() -> dict:
 
 @_handle_garmin_error
 def get_user_settings() -> dict:
-    """Benutzer-Einstellungen: VO2Max, Schwellenwerte, Messsystem, Schlafzeiten."""
+    """User settings: VO2Max, thresholds, measurement system, sleep times."""
     client = get_client()
     import garth
 

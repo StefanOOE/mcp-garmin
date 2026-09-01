@@ -1,4 +1,4 @@
-"""Tests für mcp_garmin.devices."""
+"""Tests for mcp_garmin.devices."""
 from __future__ import annotations
 
 from unittest.mock import patch
@@ -14,7 +14,7 @@ def _patch_client(monkeypatch, mock_client):
 
 
 def test_get_device_info_via_connectapi(monkeypatch, mock_client):
-    """connectapi liefert ein Gerät → camelCase wird nach snake_case konvertiert."""
+    """connectapi returns a device → camelCase is converted to snake_case."""
     import mcp_garmin.devices as devices
 
     fixture = {"deviceType": "watch", "deviceName": "Fenix 7", "batteryLevel": 80}
@@ -72,7 +72,7 @@ def test_get_device_info_fallback_no_device_keys(monkeypatch, mock_client):
 
 
 def test_get_connected_devices_via_connectapi(monkeypatch, mock_client):
-    """connectapi liefert Liste → snake_case-Liste zurück."""
+    """connectapi returns a list → snake_case list returned."""
     import mcp_garmin.devices as devices
 
     fixture = [
@@ -92,7 +92,7 @@ def test_get_connected_devices_via_connectapi(monkeypatch, mock_client):
 
 
 def test_get_connected_devices_single_dict(monkeypatch, mock_client):
-    """connectapi liefert ein einzelnes dict → in Liste gewrapped."""
+    """connectapi returns a single dict → wrapped in list."""
     import mcp_garmin.devices as devices
 
     fixture = {"deviceType": "watch", "deviceName": "Fenix 7"}
@@ -117,7 +117,7 @@ def test_get_connected_devices_empty(monkeypatch, mock_client):
 
 
 def test_get_connected_devices_fallback(monkeypatch, mock_client):
-    """connectapi wirft → Fallback auf Profil; devices-Liste wird extrahiert."""
+    """connectapi raises → fallback to profile; devices list extracted."""
     import mcp_garmin.devices as devices
 
     mock_client.connectapi.side_effect = Exception("404")

@@ -1,4 +1,4 @@
-"""Stress-Tools: Tages-/Wochen-Stress, Trainingsstatus, Morning Readiness."""
+"""Stress tools: daily/weekly stress, training status, morning readiness."""
 from __future__ import annotations
 
 from .client import _handle_garmin_error, _to_dict, get_client
@@ -6,7 +6,7 @@ from .client import _handle_garmin_error, _to_dict, get_client
 
 @_handle_garmin_error
 def get_daily_stress(end: str | None = None, days: int = 1) -> list[dict]:
-    """Stress-Verlauf der letzten N Tage (period=days, bis end, YYYY-MM-DD)."""
+    """Stress history for the last N days (period=days, up to end, YYYY-MM-DD)."""
     client = get_client()
     import garth
 
@@ -16,7 +16,7 @@ def get_daily_stress(end: str | None = None, days: int = 1) -> list[dict]:
 
 @_handle_garmin_error
 def get_weekly_stress(end: str | None = None) -> list[dict]:
-    """Stress-Verlauf der letzten 7 Tage (bis end, YYYY-MM-DD)."""
+    """Stress history for the last 7 days (up to end, YYYY-MM-DD)."""
     client = get_client()
     import garth
 
@@ -26,7 +26,7 @@ def get_weekly_stress(end: str | None = None) -> list[dict]:
 
 @_handle_garmin_error
 def get_training_status_daily(day: str | None = None) -> list[dict]:
-    """Trainingsstatus für einen Tag (YYYY-MM-DD)."""
+    """Training status for a day (YYYY-MM-DD)."""
     client = get_client()
     from garth.data import TrainingReadinessData
 
@@ -38,7 +38,7 @@ def get_training_status_daily(day: str | None = None) -> list[dict]:
 
 @_handle_garmin_error
 def get_training_status_weekly(end: str | None = None) -> list[dict]:
-    """Trainingsstatus der letzten Woche (bis end, YYYY-MM-DD)."""
+    """Training status for the last week (up to end, YYYY-MM-DD)."""
     client = get_client()
     from garth.data import TrainingReadinessData
 
@@ -50,7 +50,7 @@ def get_training_status_weekly(end: str | None = None) -> list[dict]:
 
 @_handle_garmin_error
 def get_training_status_monthly(end: str | None = None) -> list[dict]:
-    """Trainingsstatus des letzten Monats (bis end, YYYY-MM-DD)."""
+    """Training status for the last month (up to end, YYYY-MM-DD)."""
     client = get_client()
     from garth.data import TrainingReadinessData
 
@@ -62,7 +62,7 @@ def get_training_status_monthly(end: str | None = None) -> list[dict]:
 
 @_handle_garmin_error
 def get_training_readiness(day: str | None = None) -> dict:
-    """Morning Training Readiness für einen Tag (YYYY-MM-DD)."""
+    """Morning Training Readiness for a day (YYYY-MM-DD)."""
     client = get_client()
     from garth.data import MorningTrainingReadinessData
 
@@ -72,5 +72,5 @@ def get_training_readiness(day: str | None = None) -> dict:
 
 @_handle_garmin_error
 def get_morning_readiness(day: str | None = None) -> dict:
-    """Morning Readiness für einen Tag (YYYY-MM-DD) — Alias für get_training_readiness."""
+    """Morning Readiness for a day (YYYY-MM-DD) — alias for get_training_readiness."""
     return get_training_readiness(day=day)

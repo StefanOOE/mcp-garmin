@@ -1,8 +1,8 @@
 #!/usr/bin/env python3
-# Einmaliges Garmin-Login fuer mcp-garmin (garth-ng 2.0.0a1).
-# Speichert Token als JSON unter ~/.garth/oauth2_token.json und verifiziert
-# mit einem realen API-Call. Danach muss der MCP-Prozess mit demselben HOME
-# gestartet werden (Standard: /home/ss).
+# One-time Garmin login for mcp-garmin (garth-ng 2.0.0a1).
+# Stores the token as JSON under ~/.garth/oauth2_token.json and verifies
+# with a real API call. The MCP process must then be started with the
+# same HOME (default: /home/ss).
 import getpass
 import json
 import os
@@ -21,26 +21,26 @@ def save_token(token, path: Path) -> None:
         payload = asdict(token)
     target.write_text(json.dumps(payload, indent=4))
     os.chmod(target, 0o600)
-    print(f"Token gespeichert unter {target}")
+    print(f"Token saved to {target}")
 
 
 def verify(username: str) -> None:
     profile = garth.UserProfile.get()
     actual = profile.get("userName", "?") if isinstance(profile, dict) else "?"
-    print(f"Verifiziert: Profil '{actual}' erreichbar")
+    print(f"Verified: profile '{actual}' accessible")
 
 
 def main() -> int:
-    email = input("Garmin E-Mail: ").strip()
-    password = getpass.getpass("Garmin Passwort: ")
+    email = input("Garmin email: ").strip()
+    password = getpass.getpass("Garmin password: ")
     token = garth.login(email, password)
     save_token(token, Path(os.path.expanduser("~/.garth")))
     try:
         verify(email)
     except Exception as exc:  # noqa: BLE001
-        print(f"Login ok, aber Verifikation fehlgeschlagen: {exc}")
+        print(f"Login ok, but verification failed: {exc}")
         return 1
-    print("mcp-garmin ist startklar.")
+    print("mcp-garmin is ready to go.")
     return 0
 
 

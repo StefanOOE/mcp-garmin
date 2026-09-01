@@ -1,4 +1,4 @@
-"""Ernährungs-Tools: Ernährungs-Log und Ernährungs-Status."""
+"""Nutrition tools: nutrition log and nutrition status."""
 from __future__ import annotations
 
 from .client import _handle_garmin_error, _to_dict, get_client
@@ -6,7 +6,7 @@ from .client import _handle_garmin_error, _to_dict, get_client
 
 @_handle_garmin_error
 def get_nutrition_log(day: str | None = None) -> dict:
-    """Ernährungs-Log für einen Tag (YYYY-MM-DD) — Kalorien, Makros, Mahlzeiten."""
+    """Nutrition log for a day (YYYY-MM-DD) — calories, macros, meals."""
     client = get_client()
     from garth.data import NutritionLog
 
@@ -16,7 +16,7 @@ def get_nutrition_log(day: str | None = None) -> dict:
 
 @_handle_garmin_error
 def get_nutrition_status() -> dict:
-    """Ernährungs-Status: aktuelle Kalorien-Ziele und Verbräuche."""
+    """Nutrition status: current calorie goals and consumption."""
     client = get_client()
     from garth.data import NutritionStatus
 

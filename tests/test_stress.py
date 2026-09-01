@@ -1,4 +1,4 @@
-"""Tests für mcp_garmin.stress."""
+"""Tests for mcp_garmin.stress."""
 from __future__ import annotations
 
 from unittest.mock import MagicMock, patch
