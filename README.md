@@ -2,10 +2,14 @@
 
 MCP server exposing Garmin Connect fitness data as 39 fine-grained tools.
 
+> **Disclaimer:** This project uses the [garth](https://github.com/cyberjunky/python-garmin)
+> library, which interfaces with Garmin's **unofficial** Connect API.
+> The API is not guaranteed to be stable or to remain available.
+> Garmin Connect data is personal and sensitive — handle with care.
+
 ## Setup
 
 ```bash
-cd /home/ss/src/mcp-garmin
 python -m venv .venv
 .venv/bin/pip install -e ".[dev]"
 ```
@@ -18,6 +22,10 @@ python -m venv .venv
 
 Tokens are stored in `~/.garth/oauth2_token.json` and expire after ~24h.
 Re-run `garmin_login.py` when the token expires.
+
+> **Note:** The token is an OAuth2 token for your Garmin account.
+> Do not share or commit this file. It is excluded from version control
+> via `.gitignore`.
 
 ## Running
 
@@ -56,3 +64,13 @@ Re-run `garmin_login.py` when the token expires.
 .venv/bin/python -m pytest tests/ -v
 .venv/bin/python -m ruff check src/ tests/
 ```
+
+## Credits
+
+- [garth](https://github.com/cyberjunky/python-garmin) — Garmin Connect API client (MIT License)
+- [garth-ng](https://github.com/cyberjunky/python-garmin) (2.0.0a1) — updated SSO support
+- [mcp](https://github.com/modelcontextprotocol/python-sdk) — Model Context Protocol SDK
+
+## Lizenz
+
+[MIT](LICENSE)
