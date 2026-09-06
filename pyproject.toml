@@ -11,7 +11,6 @@ license = "MIT"
 readme = "README.md"
 requires-python = ">=3.9"
 dependencies = [
-    "mcp>=0.1.0",
     "garth>=0.1.0",
     "pydantic>=2.0.0",
     "requests>=2.25.0",
