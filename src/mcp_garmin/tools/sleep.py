@@ -1,30 +1,55 @@
-"""Sleep tools: sleep stages, detail data, daily summary (sleep part)."""
+"""Thin wrapper for sleep tools."""
 
 from __future__ import annotations
 
-from typing import Any
-
 from .base import register
-from ..garmin_service import GarminService
+from ..client import GarminClient
+
+
+# Create a singleton client instance
+_client_instance = GarminClient()
+
+
+def get_client():
+    """Get the Garmin client instance."""
+    return _client_instance.get_client()
+
+
+def _to_dict(obj):
+    """Convert object to dict."""
+    return _client_instance._to_dict(obj)
+
+
+def _handle_garmin_error(func):
+    """Handle Garmin errors."""
+    return _client_instance._handle_garmin_error(func)
 
 
 @register
-def get_sleep(service: GarminService, day: str | None = None) -> dict[str, Any]:
-    """Sleep data for a day (YYYY-MM-DD) including sleep stage time blocks."""
-    return service.sleep(day=day)
+@_handle_garmin_error
+def get_sleep(day: str | None = None) -> list[dict]:
+    """Sleep data for a day (YYYY-MM-DD)."""
+    from garth.data import SleepData
+    client = get_client()
+    result = SleepData.get(day=day, client=client)
+    return [_to_dict(entry) for entry in result]
 
 
 @register
-def get_sleep_detail(service: GarminService, day: str | None = None) -> dict[str, Any]:
-    """Sleep details (daily data) for a day (YYYY-MM-DD)."""
-    return service.sleep_detail(day=day)
+@_handle_garmin_error
+def get_sleep_detail(day: str | None = None) -> dict:
+    """Detailed sleep data for a day (YYYY-MM-DD)."""
+    from garth.data import SleepDetailData
+    client = get_client()
+    result = SleepDetailData.get(day=day, client=client)
+    return _to_dict(result)
 
 
 @register
-def get_sleep_summary(service: GarminService, day: str | None = None) -> dict[str, Any]:
-    """Daily summary for a day (YYYY-MM-DD).
-
-    Returns only sleep-related fields if available, otherwise the
-    full dict.
-    """
-    return service.sleep_summary(day=day)
+@_handle_garmin_error
+def get_sleep_summary(day: str | None = None) -> dict:
+    """Sleep summary for a day (YYYY-MM-DD)."""
+    from garth.data import SleepSummaryData
+    client = get_client()
+    result = SleepSummaryData.get(day=day, client=client)
+    return _to_dict(result)

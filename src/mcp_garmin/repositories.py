@@ -1,412 +1,385 @@
-"""Garmin data repository implementing the Repository pattern."""
+"""GarminRepository - Data source abstraction for Garmin API endpoints."""
 
 from __future__ import annotations
 
-from collections.abc import Callable
 from typing import Any
 
+import garth
 from garth.exc import GarthException
-from garth.utils import camel_to_snake_dict
+from garth.utils import asdict
 
-from .client import get_client, ToolError
-from .serialization import camel_to_snake_dict as camel_to_snake, project_sleep_fields
+from .errors import ToolError
 
 
 class GarminRepository:
-    """Repository for Garmin data with data access methods."""
+    """Repository pattern for Garmin data endpoints."""
 
-    def __init__(self) -> None:
-        """Initialize the repository."""
-        self._client = None
+    def __init__(self, client: garth.http.Client | None = None):
+        """Initialize repository with optional client."""
+        self._client = client
 
-    @property
-    def client(self) -> garth.http.Client:
-        """Get or initialize the Garmin API client."""
-        if self._client is None:
-            self._client = get_client()
+    def _get_client(self) -> garth.http.Client:
+        """Get or create the garth client."""
+        if self._client is not None:
+            return self._client
+        # Import here to avoid circular imports
+        from .client import get_client
+        self._client = get_client()
         return self._client
 
-    def weight(self, day: str | None = None) -> dict[str, Any] | None:
-        """Get body weight for a day."""
+    def _from_garmin(self, func, *args, **kwargs) -> Any:
+        """Wrap garth calls with error handling."""
         try:
-            from garth.data import WeightData
-            result = WeightData.get(day=day, client=self.client)
-            return result if result is not None else {}
+            return func(*args, **kwargs)
         except GarthException as e:
-            raise ToolError(f"Garmin API error: {str(e)}") from e
+            raise ToolError(str(e)) from e
 
-    def weight_history(self, end: str | None = None, days: int = 7) -> list[dict[str, Any]] | None:
-        """Get weight history for the last N days."""
-        try:
-            from garth.data import WeightData
-            result = WeightData.list(end=end, days=days, client=self.client)
-            return [camel_to_snake(entry) for entry in result] if result is not None else []
-        except GarthException as e:
-            raise ToolError(f"Garmin API error: {str(e)}") from e
+    def weight(self, day: str | None = None) -> dict:
+        """Body weight for a day (YYYY-MM-DD) — grams, BMI, body fat, etc."""
+        client = self._get_client()
+        from garth.data import WeightData
+        
+        result = self._from_garmin(WeightData.get, day=day, client=client)
+        return asdict(result) if result is not None else {}
 
-    def blood_pressure(self, day: str | None = None) -> dict[str, Any] | None:
-        """Get blood pressure for a day."""
-        try:
-            from garth.data import BloodPressure
-            result = BloodPressure.get(day=day, client=self.client)
-            return result if result is not None else {}
-        except GarthException as e:
-            raise ToolError(f"Garmin API error: {str(e)}") from e
+    def weight_history(self, end: str | None = None, days: int = 7) -> list[dict]:
+        """Weight history for the last N days (up to end, YYYY-MM-DD)."""
+        client = self._get_client()
+        from garth.data import WeightData
+        
+        result = self._from_garmin(WeightData.list, end=end, days=days, client=client)
+        return [asdict(entry) for entry in result]
 
-    def body_battery(self, day: str | None = None) -> list[dict[str, Any]] | None:
-        """Get body battery readings for a day."""
-        try:
-            from garth.data import BodyBatteryData
-            result = BodyBatteryData.get(day=day, client=self.client)
-            return [camel_to_snake(entry) for entry in result] if result is not None else []
-        except GarthException as e:
-            raise ToolError(f"Garmin API error: {str(e)}") from e
+    def blood_pressure(self, day: str | None = None) -> dict:
+        """Blood pressure reading for a day (YYYY-MM-DD)."""
+        client = self._get_client()
+        from garth.data import BloodPressure
+        
+        result = self._from_garmin(BloodPressure.get, day=day, client=client)
+        return asdict(result) if result is not None else {}
 
-    def body_battery_stress(self, day: str | None = None) -> dict[str, Any] | None:
-        """Get body battery + stress summary for a day."""
-        try:
-            from garth.data import DailyBodyBatteryStress
-            result = DailyBodyBatteryStress.get(day=day, client=self.client)
-            return result if result is not None else {}
-        except GarthException as e:
-            raise ToolError(f"Garmin API error: {str(e)}") from e
+    def body_battery(self, day: str | None = None) -> list[dict]:
+        """Body Battery readings for a day (YYYY-MM-DD)."""
+        client = self._get_client()
+        from garth.data import BodyBatteryData
+        
+        result = self._from_garmin(BodyBatteryData.get, day=day, client=client)
+        return [asdict(entry) for entry in result]
 
-    def body_battery_stress_history(self, end: str | None = None, days: int = 7) -> list[dict[str, Any]] | None:
-        """Get body battery + stress history for the last N days."""
-        try:
-            from garth.data import DailyBodyBatteryStress
-            result = DailyBodyBatteryStress.list(end=end, days=days, client=self.client)
-            return [camel_to_snake(entry) for entry in result] if result is not None else []
-        except GarthException as e:
-            raise ToolError(f"Garmin API error: {str(e)}") from e
+    def body_battery_stress(self, day: str | None = None) -> dict:
+        """Body Battery + stress summary for a day (YYYY-MM-DD)."""
+        client = self._get_client()
+        from garth.data import DailyBodyBatteryStress
+        
+        result = self._from_garmin(DailyBodyBatteryStress.get, day=day, client=client)
+        return asdict(result) if result is not None else {}
 
-    def daily_heart_rate(self, day: str | None = None) -> dict[str, Any] | None:
-        """Get daily heart rate for a day."""
-        try:
-            from garth.data import DailyHeartRate
-            result = DailyHeartRate.get(day=day, client=self.client)
-            return result if result is not None else {}
-        except GarthException as e:
-            raise ToolError(f"Garmin API error: {str(e)}") from e
+    def body_battery_stress_history(self, end: str | None = None, days: int = 7) -> list[dict]:
+        """Body Battery + stress history for the last N days (up to end)."""
+        client = self._get_client()
+        from garth.data import DailyBodyBatteryStress
+        
+        result = self._from_garmin(DailyBodyBatteryStress.list, end=end, days=days, client=client)
+        return [asdict(entry) for entry in result]
 
-    def hrv(self, end: str | None = None, days: int = 28) -> list[dict[str, Any]] | None:
-        """Get HRV history for the last N days."""
-        try:
-            from garth.data.hrv import HRVData
-            result = HRVData.list(end=end, period=days, client=self.client)
-            return [camel_to_snake(entry) for entry in result] if result is not None else []
-        except GarthException as e:
-            raise ToolError(f"Garmin API error: {str(e)}") from e
+    def daily_heart_rate(self, day: str | None = None) -> dict:
+        """Daily heart rate for a day (YYYY-MM-DD)."""
+        client = self._get_client()
+        from garth.data import DailyHeartRate
+        
+        result = self._from_garmin(DailyHeartRate.get, day=day, client=client)
+        return asdict(result) if result is not None else {}
 
-    def resting_heart_rate(self, end: str | None = None, days: int = 1) -> list[dict[str, Any]] | None:
-        """Get resting heart rate history for the last N days."""
-        try:
-            from garth.data import DailyHeartRate
-            result = DailyHeartRate.list(end=end, days=days, client=self.client)
-            return [camel_to_snake(entry) for entry in result] if result is not None else []
-        except GarthException as e:
-            raise ToolError(f"Garmin API error: {str(e)}") from e
+    def hrv(self, end: str | None = None, period: int = 7) -> list[dict]:
+        """HRV data for the last N days (up to end)."""
+        client = self._get_client()
+        from garth.data import HRVData
+        
+        result = self._from_garmin(HRVData.list, end=end, period=period, client=client)
+        return [asdict(entry) for entry in result]
 
-    def sleep(self, day: str | None = None) -> dict[str, Any] | None:
-        """Get sleep data for a day."""
-        try:
-            import garth
-            result = garth.SleepData.get(day=day, client=self.client)
-            return result if result is not None else {}
-        except GarthException as e:
-            raise ToolError(f"Garmin API error: {str(e)}") from e
+    def resting_heart_rate(self, end: str | None = None, days: int = 7) -> list[dict]:
+        """Resting heart rate for the last N days (up to end)."""
+        client = self._get_client()
+        from garth.data import DailyHeartRate
+        
+        result = self._from_garmin(DailyHeartRate.list, end=end, days=days, client=client)
+        return [asdict(entry) for entry in result]
 
-    def sleep_detail(self, day: str | None = None) -> dict[str, Any] | None:
-        """Get sleep details for a day."""
-        try:
-            from garth.data import DailySleepData
-            result = DailySleepData.get(day=day, client=self.client)
-            return result if result is not None else {}
-        except GarthException as e:
-            raise ToolError(f"Garmin API error: {str(e)}") from e
+    def sleep(self, day: str | None = None) -> dict:
+        """Sleep data for a day (YYYY-MM-DD) including sleep stage time blocks."""
+        client = self._get_client()
+        import garth
+        
+        result = self._from_garmin(garth.SleepData.get, day=day, client=client)
+        return asdict(result) if result is not None else {}
 
-    def sleep_summary(self, day: str | None = None) -> dict[str, Any] | None:
-        """Get sleep summary for a day."""
-        try:
-            from garth.data import DailySummary
-            result = DailySummary.get(day=day, client=self.client)
-            return project_sleep_fields(result) if result is not None else {}
-        except GarthException as e:
-            raise ToolError(f"Garmin API error: {str(e)}") from e
+    def sleep_detail(self, day: str | None = None) -> dict:
+        """Sleep details (daily data) for a day (YYYY-MM-DD)."""
+        client = self._get_client()
+        from garth.data import DailySleepData
+        
+        result = self._from_garmin(DailySleepData.get, day=day, client=client)
+        return asdict(result) if result is not None else {}
 
-    def daily_stress(self, end: str | None = None, days: int = 1) -> list[dict[str, Any]] | None:
-        """Get stress history for the last N days."""
-        try:
-            import garth
-            result = garth.DailyStress.list(end=end, period=days, client=self.client)
-            return [camel_to_snake(entry) for entry in result] if result is not None else []
-        except GarthException as e:
-            raise ToolError(f"Garmin API error: {str(e)}") from e
+    def sleep_summary(self, day: str | None = None) -> dict:
+        """Daily summary for a day (YYYY-MM-DD)."""
+        client = self._get_client()
+        from garth.data import DailySummary
+        
+        result = self._from_garmin(DailySummary.get, day=day, client=client)
+        return asdict(result) if result is not None else {}
 
-    def weekly_stress(self, end: str | None = None) -> list[dict[str, Any]] | None:
-        """Get stress history for the last 7 days."""
-        try:
-            import garth
-            result = garth.DailyStress.list(end=end, period=7, client=self.client)
-            return [camel_to_snake(entry) for entry in result] if result is not None else []
-        except GarthException as e:
-            raise ToolError(f"Garmin API error: {str(e)}") from e
+    def daily_stress(self, end: str | None = None, period: int = 7) -> list[dict]:
+        """Daily stress data for the last N days (up to end)."""
+        client = self._get_client()
+        from garth.data import DailyStress
+        
+        result = self._from_garmin(DailyStress.list, end=end, period=period, client=client)
+        return [asdict(entry) for entry in result]
 
-    def training_status_daily(self, day: str | None = None) -> list[dict[str, Any]] | None:
-        """Get training status for a day."""
-        try:
-            from garth.data import TrainingReadinessData
-            result = TrainingReadinessData.get(day=day, client=self.client)
-            if result is None:
-                return []
-            return [camel_to_snake(entry) for entry in result]
-        except GarthException as e:
-            raise ToolError(f"Garmin API error: {str(e)}") from e
+    def weekly_stress(self, end: str | None = None, period: int = 7) -> list[dict]:
+        """Weekly stress data for the last N weeks (up to end)."""
+        client = self._get_client()
+        from garth.data import DailyStress
+        
+        result = self._from_garmin(DailyStress.list, end=end, period=period, client=client)
+        return [asdict(entry) for entry in result]
 
-    def training_status_weekly(self, end: str | None = None) -> list[dict[str, Any]] | None:
-        """Get training status for the last week."""
-        try:
-            from garth.data import TrainingReadinessData
-            result = TrainingReadinessData.get(day=end, client=self.client)
-            if result is None:
-                return []
-            return [camel_to_snake(entry) for entry in result]
-        except GarthException as e:
-            raise ToolError(f"Garmin API error: {str(e)}") from e
+    def training_status_daily(self, day: str | None = None) -> dict:
+        """Training status for a day (YYYY-MM-DD)."""
+        client = self._get_client()
+        from garth.data import TrainingReadinessData
+        
+        result = self._from_garmin(TrainingReadinessData.get, day=day, client=client)
+        return asdict(result) if result is not None else {}
 
-    def training_status_monthly(self, end: str | None = None) -> list[dict[str, Any]] | None:
-        """Get training status for the last month."""
-        try:
-            from garth.data import TrainingReadinessData
-            result = TrainingReadinessData.get(day=end, client=self.client)
-            if result is None:
-                return []
-            return [camel_to_snake(entry) for entry in result]
-        except GarthException as e:
-            raise ToolError(f"Garmin API error: {str(e)}") from e
+    def training_status_weekly(self, end: str | None = None, period: int = 7) -> list[dict]:
+        """Training status for the last N weeks (up to end)."""
+        client = self._get_client()
+        from garth.data import TrainingReadinessData
+        
+        result = self._from_garmin(TrainingReadinessData.list, end=end, period=period, client=client)
+        return [asdict(entry) for entry in result]
 
-    def training_readiness(self, day: str | None = None) -> dict[str, Any] | None:
-        """Get morning training readiness for a day."""
-        try:
-            from garth.data import MorningTrainingReadinessData
-            result = MorningTrainingReadinessData.get(day=day, client=self.client)
-            return result if result is not None else {}
-        except GarthException as e:
-            raise ToolError(f"Garmin API error: {str(e)}") from e
+    def training_status_monthly(self, end: str | None = None, period: int = 7) -> list[dict]:
+        """Training status for the last N months (up to end)."""
+        client = self._get_client()
+        from garth.data import TrainingReadinessData
+        
+        result = self._from_garmin(TrainingReadinessData.list, end=end, period=period, client=client)
+        return [asdict(entry) for entry in result]
 
-    def activities(self, limit: int = 20, start: int = 0) -> list[dict[str, Any]] | None:
-        """List recent activities."""
-        try:
-            from garth.data import Activity
-            result = Activity.list(limit=limit, start=start, client=self.client)
-            return [camel_to_snake(entry) for entry in result] if result is not None else []
-        except GarthException as e:
-            raise ToolError(f"Garmin API error: {str(e)}") from e
+    def training_readiness(self, day: str | None = None) -> dict:
+        """Training readiness for a day (YYYY-MM-DD)."""
+        client = self._get_client()
+        from garth.data import TrainingReadinessData
+        
+        result = self._from_garmin(TrainingReadinessData.get, day=day, client=client)
+        return asdict(result) if result is not None else {}
 
-    def activity_detail(self, activity_id: int) -> dict[str, Any] | None:
-        """Get details for a single activity."""
-        try:
-            from garth.data import Activity
-            result = Activity.get(activity_id=activity_id, client=self.client)
-            return camel_to_snake(result) if result is not None else {}
-        except GarthException as e:
-            raise ToolError(f"Garmin API error: {str(e)}") from e
+    def morning_training_readiness(self, day: str | None = None) -> dict:
+        """Morning training readiness for a day (YYYY-MM-DD)."""
+        client = self._get_client()
+        from garth.data import MorningTrainingReadinessData
+        
+        result = self._from_garmin(MorningTrainingReadinessData.get, day=day, client=client)
+        return asdict(result) if result is not None else {}
 
-    def activity_map(self, activity_id: int) -> dict[str, Any] | None:
-        """Get map data (GPS track) for an activity."""
-        try:
-            from garth.data import Activity
-            result = Activity.map_details(activity_id=activity_id, client=self.client)
-            return camel_to_snake(result) if result is not None else {}
-        except GarthException as e:
-            raise ToolError(f"Garmin API error: {str(e)}") from e
+    def activities(self, limit: int = 20, start: int = 0) -> list[dict]:
+        """List of recent activities (limit/start pagination)."""
+        client = self._get_client()
+        from garth.data import Activity
+        
+        result = self._from_garmin(Activity.list, limit=limit, start=start, client=client)
+        return [asdict(entry) for entry in result]
 
-    def fitness_activities(self, end: str | None = None, days: int = 7) -> list[dict[str, Any]] | None:
-        """Get fitness activities for the last N days."""
-        try:
-            from garth.data import FitnessActivity
-            result = FitnessActivity.list(end=end, days=days, client=self.client)
-            return [camel_to_snake(entry) for entry in result] if result is not None else []
-        except GarthException as e:
-            raise ToolError(f"Garmin API error: {str(e)}") from e
+    def activity_detail(self, activity_id: int) -> dict:
+        """Details for a single activity (activity_id)."""
+        client = self._get_client()
+        from garth.data import Activity
+        
+        result = self._from_garmin(Activity.get, activity_id=activity_id, client=client)
+        return asdict(result) if result is not None else {}
 
-    def personal_records(self) -> list[dict[str, Any]] | None:
-        """Get all personal records."""
-        try:
-            from garth.data import PersonalRecord
-            result = PersonalRecord.list(client=self.client)
-            return [camel_to_snake(entry) for entry in result] if result is not None else []
-        except GarthException as e:
-            raise ToolError(f"Garmin API error: {str(e)}") from e
+    def activity_map(self, activity_id: int) -> dict:
+        """Map data (GPS track) for an activity (activity_id)."""
+        client = self._get_client()
+        from garth.data import Activity
+        
+        result = self._from_garmin(Activity.map_details, activity_id=activity_id, client=client)
+        return asdict(result) if result is not None else {}
 
-    def personal_record_types(self) -> list[dict[str, Any]] | None:
-        """Get available record types."""
-        try:
-            from garth.data import PersonalRecordType
-            result = PersonalRecordType.list(client=self.client)
-            return [camel_to_snake(entry) for entry in result] if result is not None else []
-        except GarthException as e:
-            raise ToolError(f"Garmin API error: {str(e)}") from e
+    def fitness_activities(self, end: str | None = None, days: int = 7) -> list[dict]:
+        """Fitness activities (steps/calories) for the last N days (up to end)."""
+        client = self._get_client()
+        from garth.data import FitnessActivity
+        
+        result = self._from_garmin(FitnessActivity.list, end=end, days=days, client=client)
+        return [asdict(entry) for entry in result]
 
-    def daily_steps(self, end: str | None = None) -> list[dict[str, Any]] | None:
-        """Get step count for the last day."""
-        try:
-            import garth
-            result = garth.DailySteps.list(end=end, period=1, client=self.client)
-            return [camel_to_snake(entry) for entry in result] if result is not None else []
-        except GarthException as e:
-            raise ToolError(f"Garmin API error: {str(e)}") from e
+    def personal_records(self) -> list[dict]:
+        """All personal records."""
+        client = self._get_client()
+        from garth.data import PersonalRecord
+        
+        result = self._from_garmin(PersonalRecord.list, client=client)
+        return [asdict(entry) for entry in result]
 
-    def weekly_steps(self, end: str | None = None) -> list[dict[str, Any]] | None:
-        """Get step count for the last 7 days."""
-        try:
-            import garth
-            result = garth.DailySteps.list(end=end, period=7, client=self.client)
-            return [camel_to_snake(entry) for entry in result] if result is not None else []
-        except GarthException as e:
-            raise ToolError(f"Garmin API error: {str(e)}") from e
+    def personal_record_types(self) -> list[dict]:
+        """Available record types."""
+        client = self._get_client()
+        from garth.data import PersonalRecordType
+        
+        result = self._from_garmin(PersonalRecordType.list, client=client)
+        return [asdict(entry) for entry in result]
 
-    def daily_summary(self, day: str | None = None) -> dict[str, Any] | None:
-        """Get daily summary for a day."""
-        try:
-            from garth.data import DailySummary
-            result = DailySummary.get(day=day, client=self.client)
-            return result if result is not None else {}
-        except GarthException as e:
-            raise ToolError(f"Garmin API error: {str(e)}") from e
+    def daily_steps(self, end: str | None = None, period: int = 1) -> list[dict]:
+        """Daily steps for the last N days (up to end)."""
+        client = self._get_client()
+        from garth.data import DailySteps
+        
+        result = self._from_garmin(DailySteps.list, end=end, period=period, client=client)
+        return [asdict(entry) for entry in result]
 
-    def daily_summary_history(self, end: str | None = None, days: int = 7) -> list[dict[str, Any]] | None:
-        """Get daily summary history for the last N days."""
-        try:
-            from garth.data import DailySummary
-            result = DailySummary.list(end=end, days=days, client=self.client)
-            return [camel_to_snake(entry) for entry in result] if result is not None else []
-        except GarthException as e:
-            raise ToolError(f"Garmin API error: {str(e)}") from e
+    def weekly_steps(self, end: str | None = None, period: int = 7) -> list[dict]:
+        """Weekly steps for the last N weeks (up to end)."""
+        client = self._get_client()
+        from garth.data import DailySteps
+        
+        result = self._from_garmin(DailySteps.list, end=end, period=period, client=client)
+        return [asdict(entry) for entry in result]
 
-    def daily_hydration(self, day: str | None = None) -> dict[str, Any] | None:
-        """Get fluid intake including daily goal for a day."""
-        try:
-            import garth
-            result = garth.DailyHydration.all_data(day=day, client=self.client)
-            return result if result is not None else {}
-        except GarthException as e:
-            raise ToolError(f"Garmin API error: {str(e)}") from e
+    def daily_summary(self, day: str | None = None) -> dict:
+        """Daily summary for a day (YYYY-MM-DD)."""
+        client = self._get_client()
+        from garth.data import DailySummary
+        
+        result = self._from_garmin(DailySummary.get, day=day, client=client)
+        return asdict(result) if result is not None else {}
 
-    def hydration_history(self, end: str | None = None, days: int = 1) -> list[dict[str, Any]] | None:
-        """Get fluid intake history for the last N days."""
-        try:
-            import garth
-            result = garth.DailyHydration.list(end=end, period=days, client=self.client)
-            return [camel_to_snake(entry) for entry in result] if result is not None else []
-        except GarthException as e:
-            raise ToolError(f"Garmin API error: {str(e)}") from e
+    def daily_summary_history(self, end: str | None = None, days: int = 7) -> list[dict]:
+        """Daily summary history for the last N days (up to end)."""
+        client = self._get_client()
+        from garth.data import DailySummary
+        
+        result = self._from_garmin(DailySummary.list, end=end, days=days, client=client)
+        return [asdict(entry) for entry in result]
 
-    def device_info(self) -> dict[str, Any] | None:
-        """Get active Garmin device info."""
+    def daily_hydration(self, end: str | None = None, period: int = 1) -> list[dict]:
+        """Daily hydration for the last N days (up to end)."""
+        client = self._get_client()
+        from garth.data import DailyHydration
+        
+        result = self._from_garmin(DailyHydration.list, end=end, period=period, client=client)
+        return [asdict(entry) for entry in result]
+
+    def hydration_history(self, end: str | None = None, days: int = 7) -> list[dict]:
+        """Hydration history for the last N days (up to end)."""
+        client = self._get_client()
+        from garth.data import DailyHydration
+        
+        result = self._from_garmin(DailyHydration.list, end=end, days=days, client=client)
+        return [asdict(entry) for entry in result]
+
+    def device_info(self) -> dict:
+        """Active Garmin device: type, name, battery level."""
+        client = self._get_client()
+        from garth.utils import camel_to_snake_dict
+        
+        # Try the deviceinfo endpoint; fall back to user profile
         try:
-            import garth
-            # Try the deviceinfo endpoint; fall back to user profile
+            raw = client.connectapi(
+                '/connectapi/proxy/deviceinfo-service/device', method='GET'
+            )
+            return camel_to_snake_dict(raw) if raw else {}
+        except Exception:
+            # Fallback: extract from user profile
+            from garth.data import UserProfile
+            profile = self._from_garmin(UserProfile.get, client=client)
+            result = asdict(profile)
+            device_keys = {k: v for k, v in result.items() if 'device' in k.lower()}
+            return device_keys if device_keys else result
+
+    def connected_devices(self) -> list[dict]:
+        """List of all connected Garmin devices."""
+        client = self._get_client()
+        from garth.utils import camel_to_snake_dict
+        
+        try:
+            raw = client.connectapi(
+                '/connectapi/proxy/deviceinfo-service/devices', method='GET'
+            )
+            if isinstance(raw, list):
+                return [camel_to_snake_dict(d) for d in raw]
+            if isinstance(raw, dict):
+                return [camel_to_snake_dict(raw)]
+            return []
+        except Exception:
+            # Fallback: try user profile
             try:
-                raw = self.client.connectapi(
-                    '/connectapi/proxy/deviceinfo-service/device', method='GET'
-                )
-                return camel_to_snake(raw) if raw else {}
-            except Exception:
-                # Fallback: extract from user profile
-                profile = garth.UserProfile.get(client=self.client)
-                result = profile
-                device_keys = {k: v for k, v in result.items() if 'device' in k.lower()}
-                return device_keys if device_keys else result
-        except GarthException as e:
-            raise ToolError(f"Garmin API error: {str(e)}") from e
-
-    def connected_devices(self) -> list[dict[str, Any]] | None:
-        """Get list of all connected Garmin devices."""
-        try:
-            import garth
-            try:
-                raw = self.client.connectapi(
-                    '/connectapi/proxy/deviceinfo-service/devices', method='GET'
-                )
-                if isinstance(raw, list):
-                    return [camel_to_snake(d) for d in raw]
-                if isinstance(raw, dict):
-                    return [camel_to_snake(raw)]
+                from garth.data import UserProfile
+                profile = self._from_garmin(UserProfile.get, client=client)
+                result = asdict(profile)
+                devices = result.get('devices', result.get('connected_devices', []))
+                if isinstance(devices, list):
+                    return devices
                 return []
             except Exception:
-                # Fallback: try user profile
-                try:
-                    profile = garth.UserProfile.get(client=self.client)
-                    result = profile
-                    devices = result.get('devices', result.get('connected_devices', []))
-                    if isinstance(devices, list):
-                        return devices
-                    return []
-                except Exception:
-                    return []
-        except GarthException as e:
-            raise ToolError(f"Garmin API error: {str(e)}") from e
+                return []
 
-    def nutrition_log(self, day: str | None = None) -> dict[str, Any] | None:
-        """Get nutrition log for a day."""
-        try:
-            from garth.data import NutritionLog
-            result = NutritionLog.get(day=day, client=self.client)
-            return result if result is not None else {}
-        except GarthException as e:
-            raise ToolError(f"Garmin API error: {str(e)}") from e
+    def nutrition_log(self, day: str | None = None) -> dict:
+        """Nutrition log for a day (YYYY-MM-DD)."""
+        client = self._get_client()
+        from garth.data import NutritionLog
+        
+        result = self._from_garmin(NutritionLog.get, day=day, client=client)
+        return asdict(result) if result is not None else {}
 
-    def nutrition_status(self) -> dict[str, Any] | None:
-        """Get nutrition status."""
-        try:
-            from garth.data import NutritionStatus
-            result = NutritionStatus.get(client=self.client)
-            return result if result is not None else {}
-        except GarthException as e:
-            raise ToolError(f"Garmin API error: {str(e)}") from e
+    def nutrition_status(self) -> dict:
+        """Nutrition status."""
+        client = self._get_client()
+        from garth.data import NutritionStatus
+        
+        result = self._from_garmin(NutritionStatus.get, client=client)
+        return asdict(result) if result is not None else {}
 
-    def steps_goal(self, day: str | None = None) -> dict[str, Any] | None:
-        """Get steps goal for a day."""
-        try:
-            from garth.data import StepsGoal
-            result = StepsGoal.get(day=day, client=self.client)
-            return result if result is not None else {}
-        except GarthException as e:
-            raise ToolError(f"Garmin API error: {str(e)}") from e
+    def steps_goal(self, day: str | None = None) -> dict:
+        """Steps goal for a day (YYYY-MM-DD) — device + user + sync status."""
+        client = self._get_client()
+        from garth.data import StepsGoal
+        
+        result = self._from_garmin(StepsGoal.get, day=day, client=client)
+        return asdict(result) if result is not None else {}
 
-    def weight_goal(self, day: str | None = None) -> dict[str, Any] | None:
-        """Get weight goal for a day."""
-        try:
-            from garth.data import WeightGoal
-            result = WeightGoal.get(day=day, client=self.client)
-            return result if result is not None else {}
-        except GarthException as e:
-            raise ToolError(f"Garmin API error: {str(e)}") from e
+    def weight_goal(self, day: str | None = None) -> dict:
+        """Weight goal for a day (YYYY-MM-DD) — target + target ranges."""
+        client = self._get_client()
+        from garth.data import WeightGoal
+        
+        result = self._from_garmin(WeightGoal.get, day=day, client=client)
+        return asdict(result) if result is not None else {}
 
-    def garmin_scores(self, day: str | None = None) -> dict[str, Any] | None:
-        """Get Garmin fitness scores for a day."""
-        try:
-            import garth
-            result = garth.GarminScoresData.get(day=day, client=self.client)
-            return result if result is not None else {}
-        except GarthException as e:
-            raise ToolError(f"Garmin API error: {str(e)}") from e
+    def garmin_scores(self, day: str | None = None) -> dict:
+        """Garmin fitness scores for a day (YYYY-MM-DD) — Vo2Max, Endurance, Power."""
+        client = self._get_client()
+        import garth
+        
+        result = self._from_garmin(garth.GarminScoresData.get, day=day, client=client)
+        return asdict(result) if result is not None else {}
 
-    def user_profile(self) -> dict[str, Any] | None:
-        """Get Garmin user profile."""
-        try:
-            import garth
-            result = garth.UserProfile.get(client=self.client)
-            return result if result is not None else {}
-        except GarthException as e:
-            raise ToolError(f"Garmin API error: {str(e)}") from e
+    def user_profile(self) -> dict:
+        """User profile data."""
+        client = self._get_client()
+        from garth.data import UserProfile
+        
+        result = self._from_garmin(UserProfile.get, client=client)
+        return asdict(result) if result is not None else {}
 
-    def user_settings(self) -> dict[str, Any] | None:
-        """Get user settings."""
-        try:
-            import garth
-            result = garth.UserSettings.get(client=self.client)
-            return result if result is not None else {}
-        except GarthException as e:
-            raise ToolError(f"Garmin API error: {str(e)}") from e
+    def user_settings(self) -> dict:
+        """User settings data."""
+        client = self._get_client()
+        from garth.data import UserSettings
+        
+        result = self._from_garmin(UserSettings.get, client=client)
+        return asdict(result) if result is not None else {}

@@ -1,20 +1,45 @@
-"""Device tools: device info and device list."""
+"""Thin wrapper for devices tools."""
 
 from __future__ import annotations
 
-from typing import Any
-
 from .base import register
-from ..garmin_service import GarminService
+from ..client import GarminClient
+
+
+# Create a singleton client instance
+_client_instance = GarminClient()
+
+
+def get_client():
+    """Get the Garmin client instance."""
+    return _client_instance.get_client()
+
+
+def _to_dict(obj):
+    """Convert object to dict."""
+    return _client_instance._to_dict(obj)
+
+
+def _handle_garmin_error(func):
+    """Handle Garmin errors."""
+    return _client_instance._handle_garmin_error(func)
 
 
 @register
-def get_device_info(service: GarminService) -> dict[str, Any]:
-    """Active Garmin device: type, name, battery level."""
-    return service.device_info()
+@_handle_garmin_error
+def get_connected_devices() -> list[dict]:
+    """Connected devices."""
+    from garth.data import ConnectedDevices
+    client = get_client()
+    result = ConnectedDevices.get(client=client)
+    return [_to_dict(entry) for entry in result]
 
 
 @register
-def get_connected_devices(service: GarminService) -> list[dict[str, Any]]:
-    """List of all connected Garmin devices."""
-    return service.connected_devices()
+@_handle_garmin_error
+def get_device_info(device_id: str) -> dict:
+    """Device info for a specific device ID."""
+    from garth.data import DeviceInfo
+    client = get_client()
+    result = DeviceInfo.get(device_id=device_id, client=client)
+    return _to_dict(result)

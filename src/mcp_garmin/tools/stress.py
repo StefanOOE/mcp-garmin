@@ -1,50 +1,95 @@
-"""Stress tools: daily/weekly stress, training status, morning readiness."""
+"""Thin wrapper for stress tools."""
 
 from __future__ import annotations
 
-from typing import Any
-
 from .base import register
-from ..garmin_service import GarminService
+from ..client import GarminClient
+
+
+# Create a singleton client instance
+_client_instance = GarminClient()
+
+
+def get_client():
+    """Get the Garmin client instance."""
+    return _client_instance.get_client()
+
+
+def _to_dict(obj):
+    """Convert object to dict."""
+    return _client_instance._to_dict(obj)
+
+
+def _handle_garmin_error(func):
+    """Handle Garmin errors."""
+    return _client_instance._handle_garmin_error(func)
 
 
 @register
-def get_daily_stress(service: GarminService, end: str | None = None, days: int = 1) -> list[dict[str, Any]]:
-    """Stress history for the last N days (period=days, up to end, YYYY-MM-DD)."""
-    return service.daily_stress(end=end, days=days)
+@_handle_garmin_error
+def get_daily_stress(day: str | None = None) -> list[dict]:
+    """Daily stress data for a day (YYYY-MM-DD)."""
+    from garth.data import DailyStressData
+    client = get_client()
+    result = DailyStressData.get(day=day, client=client)
+    return [_to_dict(entry) for entry in result]
 
 
 @register
-def get_weekly_stress(service: GarminService, end: str | None = None) -> list[dict[str, Any]]:
-    """Stress history for the last 7 days (up to end, YYYY-MM-DD)."""
-    return service.weekly_stress(end=end)
+@_handle_garmin_error
+def get_weekly_stress(start_date: str | None = None) -> list[dict]:
+    """Weekly stress data starting from a date (YYYY-MM-DD)."""
+    from garth.data import WeeklyStressData
+    client = get_client()
+    result = WeeklyStressData.get(start_date=start_date, client=client)
+    return [_to_dict(entry) for entry in result]
 
 
 @register
-def get_training_status_daily(service: GarminService, day: str | None = None) -> list[dict[str, Any]]:
+@_handle_garmin_error
+def get_training_status_daily(day: str | None = None) -> dict:
     """Training status for a day (YYYY-MM-DD)."""
-    return service.training_status_daily(day=day)
+    from garth.data import TrainingStatusDaily
+    client = get_client()
+    result = TrainingStatusDaily.get(day=day, client=client)
+    return _to_dict(result)
 
 
 @register
-def get_training_status_weekly(service: GarminService, end: str | None = None) -> list[dict[str, Any]]:
-    """Training status for the last week (up to end, YYYY-MM-DD)."""
-    return service.training_status_weekly(end=end)
+@_handle_garmin_error
+def get_training_status_weekly(start_date: str | None = None) -> dict:
+    """Training status for a week starting from a date (YYYY-MM-DD)."""
+    from garth.data import TrainingStatusWeekly
+    client = get_client()
+    result = TrainingStatusWeekly.get(start_date=start_date, client=client)
+    return _to_dict(result)
 
 
 @register
-def get_training_status_monthly(service: GarminService, end: str | None = None) -> list[dict[str, Any]]:
-    """Training status for the last month (up to end, YYYY-MM-DD)."""
-    return service.training_status_monthly(end=end)
+@_handle_garmin_error
+def get_training_status_monthly(start_date: str | None = None) -> dict:
+    """Training status for a month starting from a date (YYYY-MM-DD)."""
+    from garth.data import TrainingStatusMonthly
+    client = get_client()
+    result = TrainingStatusMonthly.get(start_date=start_date, client=client)
+    return _to_dict(result)
 
 
 @register
-def get_training_readiness(service: GarminService, day: str | None = None) -> dict[str, Any]:
-    """Morning Training Readiness for a day (YYYY-MM-DD)."""
-    return service.training_readiness(day=day)
+@_handle_garmin_error
+def get_training_readiness(day: str | None = None) -> dict:
+    """Training readiness for a day (YYYY-MM-DD)."""
+    from garth.data import TrainingReadiness
+    client = get_client()
+    result = TrainingReadiness.get(day=day, client=client)
+    return _to_dict(result)
 
 
 @register
-def get_morning_readiness(service: GarminService, day: str | None = None) -> dict[str, Any]:
-    """Morning Readiness for a day (YYYY-MM-DD) — alias for get_training_readiness."""
-    return service.morning_readiness(day=day)
+@_handle_garmin_error
+def get_morning_readiness(day: str | None = None) -> dict:
+    """Morning readiness for a day (YYYY-MM-DD)."""
+    from garth.data import MorningReadiness
+    client = get_client()
+    result = MorningReadiness.get(day=day, client=client)
+    return _to_dict(result)

@@ -1,22 +1,24 @@
-name = "mcp-garmin"
-version = "0.1.0"
-description = "MCP server for Garmin Connect data"
-authors = ["Stefan Strauß-Haslinglehner <garmin.com.ploy864@passmail.net>"]
-license = "MIT"
-readme = "README.md"
-python_requires = ">=3.9"
-
 [build-system]
 requires = ["setuptools>=45", "wheel"]
 build-backend = "setuptools.build_meta"
 
 [project]
+name = "mcp-garmin"
+version = "0.1.0"
+description = "MCP server for Garmin Connect data"
+authors = [{name = "Stefan Strauß-Haslinglehner", email = "garmin.com.ploy864@passmail.net"}]
+license = "MIT"
+readme = "README.md"
+python_requires = ">=3.9"
 dependencies = [
     "mcp>=0.1.0",
     "garth>=0.1.0",
     "pydantic>=2.0.0",
     "requests>=2.25.0",
 ]
+
+[project.scripts]
+mcp-garmin-login = "mcp_garmin.login:main"
 
 [project.optional-dependencies]
 dev = [

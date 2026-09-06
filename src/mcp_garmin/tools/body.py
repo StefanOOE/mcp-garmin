@@ -1,44 +1,85 @@
-"""Body tools: weight, blood pressure, body battery."""
+"""Thin wrapper for body tools."""
 
 from __future__ import annotations
 
-from typing import Any
-
 from .base import register
-from ..garmin_service import GarminService
+from ..client import GarminClient
+
+
+# Create a singleton client instance
+_client_instance = GarminClient()
+
+
+def get_client():
+    """Get the Garmin client instance."""
+    return _client_instance.get_client()
+
+
+def _to_dict(obj):
+    """Convert object to dict."""
+    return _client_instance._to_dict(obj)
+
+
+def _handle_garmin_error(func):
+    """Handle Garmin errors."""
+    return _client_instance._handle_garmin_error(func)
 
 
 @register
-def get_body_weight(service: GarminService, day: str | None = None) -> dict[str, Any]:
+@_handle_garmin_error
+def get_body_weight(day: str | None = None) -> dict:
     """Body weight for a day (YYYY-MM-DD) — grams, BMI, body fat, etc."""
-    return service.weight(day=day)
+    from garth.data import WeightData
+    client = get_client()
+    result = WeightData.get(day=day, client=client)
+    return _to_dict(result)
 
 
 @register
-def get_weight_history(service: GarminService, end: str | None = None, days: int = 7) -> list[dict[str, Any]]:
+@_handle_garmin_error
+def get_weight_history(end: str | None = None, days: int = 7) -> list[dict]:
     """Weight history for the last N days (up to end, YYYY-MM-DD)."""
-    return service.weight_history(end=end, days=days)
+    from garth.data import WeightData
+    client = get_client()
+    result = WeightData.list(end=end, days=days, client=client)
+    return [_to_dict(entry) for entry in result]
 
 
 @register
-def get_blood_pressure(service: GarminService, day: str | None = None) -> dict[str, Any]:
+@_handle_garmin_error
+def get_blood_pressure(day: str | None = None) -> dict:
     """Blood pressure reading for a day (YYYY-MM-DD)."""
-    return service.blood_pressure(day=day)
+    from garth.data import BloodPressure
+    client = get_client()
+    result = BloodPressure.get(day=day, client=client)
+    return _to_dict(result)
 
 
 @register
-def get_body_battery(service: GarminService, day: str | None = None) -> list[dict[str, Any]]:
+@_handle_garmin_error
+def get_body_battery(day: str | None = None) -> list[dict]:
     """Body Battery readings for a day (YYYY-MM-DD)."""
-    return service.body_battery(day=day)
+    from garth.data import BodyBatteryData
+    client = get_client()
+    result = BodyBatteryData.get(day=day, client=client)
+    return [_to_dict(entry) for entry in result]
 
 
 @register
-def get_body_battery_stress(service: GarminService, day: str | None = None) -> dict[str, Any]:
+@_handle_garmin_error
+def get_body_battery_stress(day: str | None = None) -> dict:
     """Body Battery + stress summary for a day (YYYY-MM-DD)."""
-    return service.body_battery_stress(day=day)
+    from garth.data import DailyBodyBatteryStress
+    client = get_client()
+    result = DailyBodyBatteryStress.get(day=day, client=client)
+    return _to_dict(result)
 
 
 @register
-def get_body_battery_stress_history(service: GarminService, end: str | None = None, days: int = 7) -> list[dict[str, Any]]:
+@_handle_garmin_error
+def get_body_battery_stress_history(end: str | None = None, days: int = 7) -> list[dict]:
     """Body Battery + stress history for the last N days (up to end)."""
-    return service.body_battery_stress_history(end=end, days=days)
+    from garth.data import DailyBodyBatteryStress
+    client = get_client()
+    result = DailyBodyBatteryStress.list(end=end, days=days, client=client)
+    return [_to_dict(entry) for entry in result]
