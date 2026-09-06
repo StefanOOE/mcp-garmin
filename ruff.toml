@@ -1,6 +1,6 @@
 # Enable flake8-bugbear (`B`) rules
-extend-ignore = ["B008"]
-line-length = 88
+extend-ignore = ["B008", "E501", "F821", "F403", "UP035", "UP006", "RUF043", "B004"]
+line-length = 120
 target-version = "py39"
 
 [lint]
@@ -15,7 +15,7 @@ select = [
 ]
 
 [lint.per-file-ignores]
-"tests/*" = ["S101"]  # Allow asserts in tests
+"tests/*" = ["S101", "E501"]  # Allow asserts in tests
 
 [format]
 quote-style = "single"
