@@ -9,7 +9,7 @@ description = "MCP server for Garmin Connect data"
 authors = [{name = "Stefan Strauß-Haslinglehner", email = "garmin.com.ploy864@passmail.net"}]
 license = "MIT"
 readme = "README.md"
-python_requires = ">=3.9"
+requires-python = ">=3.9"
 dependencies = [
     "mcp>=0.1.0",
     "garth>=0.1.0",
