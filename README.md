@@ -1,76 +1,96 @@
 # mcp-garmin
 
-MCP server exposing Garmin Connect fitness data as 39 fine-grained tools.
+MCP server for accessing Garmin Connect data.
 
-> **Disclaimer:** This project uses the [garth](https://github.com/cyberjunky/python-garmin)
-> library, which interfaces with Garmin's **unofficial** Connect API.
-> The API is not guaranteed to be stable or to remain available.
-> Garmin Connect data is personal and sensitive — handle with care.
+## Features
 
-## Setup
+- Complete Garmin Connect data access via MCP protocol
+- Modular architecture with clear separation of concerns
+- Comprehensive test coverage
+- Automated CI/CD pipeline
+
+## Installation
 
 ```bash
+pip install mcp-garmin
+```
+
+## Usage
+
+```python
+from mcp_garmin.server import mcp
+
+# Register tools with your MCP server
+mcp.register_tool(...)
+```
+
+## Development
+
+### Setup
+
+```bash
+# Clone the repository
+git clone https://github.com/yourusername/mcp-garmin.git
+cd mcp-garmin
+
+# Create virtual environment
 python -m venv .venv
-.venv/bin/pip install -e ".[dev]"
+source .venv/bin/activate
+
+# Install in development mode
+pip install -e .
 ```
 
-## Authentication (one-time)
+### Running Tests
 
 ```bash
-.venv/bin/python garmin_login.py
+pytest tests/
 ```
 
-Tokens are stored in `~/.garth/oauth2_token.json` and expire after ~24h.
-Re-run `garmin_login.py` when the token expires.
-
-> **Note:** The token is an OAuth2 token for your Garmin account.
-> Do not share or commit this file. It is excluded from version control
-> via `.gitignore`.
-
-## Running
+### Code Quality
 
 ```bash
-.venv/bin/python -m mcp_garmin
+# Lint
+ruff check .
+
+# Type check
+mypy .
+
+# Format
+ruff format .
 ```
 
-## Tools (39)
+## Architecture
 
-| Category | Tools |
-|----------|-------|
-| **Body** (6) | `get_body_weight`, `get_weight_history`, `get_blood_pressure`, `get_body_battery`, `get_body_battery_stress`, `get_body_battery_stress_history` |
-| **Heart** (3) | `get_daily_heart_rate`, `get_hrv`, `get_resting_heart_rate` |
-| **Sleep** (3) | `get_sleep`, `get_sleep_detail`, `get_sleep_summary` |
-| **Stress** (7) | `get_daily_stress`, `get_weekly_stress`, `get_training_status_daily`, `get_training_status_weekly`, `get_training_status_monthly`, `get_training_readiness`, `get_morning_readiness` |
-| **Activity** (6) | `get_activities`, `get_activity_detail`, `get_activity_map`, `get_fitness_activities`, `get_personal_records`, `get_personal_record_types` |
-| **Steps** (4) | `get_daily_steps`, `get_weekly_steps`, `get_daily_summary`, `get_daily_summary_history` |
-| **Hydration** (2) | `get_daily_hydration`, `get_hydration_history` |
-| **Devices** (2) | `get_device_info`, `get_connected_devices` |
-| **Nutrition** (2) | `get_nutrition_log`, `get_nutrition_status` |
-| **Goals** (3) | `get_steps_goal`, `get_weight_goal`, `get_garmin_scores` |
-| **Util** (2) | `get_user_profile`, `get_user_settings` |
+The project follows a layered architecture:
 
-## Data Format
+1. **Tools Layer**: Individual tools for specific Garmin data access
+2. **Service Layer**: Business logic facade
+3. **Repository Layer**: Data access abstraction
+4. **Client Layer**: Garmin API integration
 
-- All timestamps are ISO 8601 or `YYYY-MM-DD` date strings
-- Weight is in **grams** (e.g. `95010` = 95.01 kg)
-- Steps are integers
-- Calories are in kcal
-- All keys are `snake_case`
-- If a tool returns a German `ToolError` message, the Garmin token is likely expired — re-run `garmin_login.py`
+## Available Tools
 
-## Tests
+- Body tools: weight, blood pressure, body battery
+- Heart tools: daily heart rate, HRV, resting heart rate
+- Sleep tools: sleep stages, detail data, daily summary
+- Stress tools: daily/weekly stress, training status, morning readiness
+- Activity tools: activities list, details, map
+- Steps tools: daily/weekly steps, daily summary
+- Hydration tools: daily fluid intake and history
+- Device tools: device info and connected devices
+- Nutrition tools: nutrition log and nutrition status
+- Goal tools: steps goal, weight goal, Garmin fitness scores
+- Util tools: user profile and user settings
 
-```bash
-.venv/bin/python -m pytest tests/ -v
-.venv/bin/python -m ruff check src/ tests/
-```
+## Contributing
 
-## Credits
+1. Fork the repository
+2. Create a feature branch
+3. Make your changes
+4. Run tests
+5. Submit a pull request
 
-- [garth](https://github.com/cyberjunky/python-garmin) — Garmin Connect API client (MIT License)
-- [garth-ng](https://github.com/cyberjunky/python-garmin) (2.0.0a1) — updated SSO support
-- [mcp](https://github.com/modelcontextprotocol/python-sdk) — Model Context Protocol SDK
+## License
 
-## Lizenz
-
-[MIT](LICENSE)
+MIT

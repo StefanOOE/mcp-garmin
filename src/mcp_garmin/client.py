@@ -1,21 +1,26 @@
-"""Token handling + casing + error cascade for the Garmin API."""
+"""Client and token handling for Garmin API."""
+
 from __future__ import annotations
 
-from collections.abc import Callable
+import os
+from typing import TYPE_CHECKING, Any, Callable
 from functools import wraps
-from typing import Any
 
-import garth
+from garth import http
 from garth.exc import GarthException
 from garth.storage import FileTokenStorage
 from garth.utils import asdict
+
+if TYPE_CHECKING:
+    from garth.http import Client
+
 
 _TOKEN_DIR = "~/.garth"
 _client: garth.http.Client | None = None
 
 
 class ToolError(Exception):
-    """Returned to MCP tools when a Garmin API error occurs."""
+    """Raised by tools when a Garmin API error occurs."""
 
 
 def get_client() -> garth.http.Client:
