@@ -1,4 +1,5 @@
 """Tests for mcp_garmin.body."""
+
 from __future__ import annotations
 
 from unittest.mock import MagicMock, patch
@@ -32,7 +33,9 @@ def test_get_weight_history(monkeypatch, weight_fixture):
     import mcp_garmin.body as body
 
     _patch_client(monkeypatch, MagicMock())
-    with patch("garth.data.WeightData.list", return_value=[weight_fixture]) as mock_list:
+    with patch(
+        "garth.data.WeightData.list", return_value=[weight_fixture]
+    ) as mock_list:
         result = body.get_weight_history(end="2026-09-01", days=7)
     mock_list.assert_called_once()
     assert mock_list.call_args.kwargs["end"] == "2026-09-01"
@@ -108,6 +111,8 @@ def test_get_body_weight_raises_tool_error(monkeypatch):
     from mcp_garmin.client import ToolError
 
     _patch_client(monkeypatch, MagicMock())
-    with patch("garth.data.WeightData.get", side_effect=GarthException("token expired")):
+    with patch(
+        "garth.data.WeightData.get", side_effect=GarthException("token expired")
+    ):
         with pytest.raises(ToolError, match="garmin_login.py"):
             body.get_body_weight(day="2026-09-01")

@@ -9,7 +9,7 @@ import os
 import sys
 from pathlib import Path
 import garth
-from garth.storage import FileTokenStorage, OAUTH2_TOKEN_FILE
+from garth.storage import OAUTH2_TOKEN_FILE
 
 
 def save_token(token, path: Path) -> None:
@@ -18,6 +18,7 @@ def save_token(token, path: Path) -> None:
     payload = garth.utils.asdict(token) if hasattr(garth, "utils") else None
     if payload is None:
         from garth.utils import asdict
+
         payload = asdict(token)
     target.write_text(json.dumps(payload, indent=4))
     os.chmod(target, 0o600)
@@ -37,7 +38,7 @@ def main() -> int:
     save_token(token, Path(os.path.expanduser("~/.garth")))
     try:
         verify(email)
-    except Exception as exc:  # noqa: BLE001
+    except Exception as exc:
         print(f"Login ok, but verification failed: {exc}")
         return 1
     print("mcp-garmin is ready to go.")

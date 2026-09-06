@@ -5,7 +5,6 @@ from __future__ import annotations
 from .base import register
 from ..client import GarminClient
 
-
 # Create a singleton client instance
 _client_instance = GarminClient()
 
@@ -30,6 +29,7 @@ def _handle_garmin_error(func):
 def get_connected_devices() -> list[dict]:
     """Connected devices."""
     from garth.data import ConnectedDevices
+
     client = get_client()
     result = ConnectedDevices.get(client=client)
     return [_to_dict(entry) for entry in result]
@@ -40,6 +40,7 @@ def get_connected_devices() -> list[dict]:
 def get_device_info(device_id: str) -> dict:
     """Device info for a specific device ID."""
     from garth.data import DeviceInfo
+
     client = get_client()
     result = DeviceInfo.get(device_id=device_id, client=client)
     return _to_dict(result)

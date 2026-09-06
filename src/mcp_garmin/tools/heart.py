@@ -5,7 +5,6 @@ from __future__ import annotations
 from .base import register
 from ..client import GarminClient
 
-
 # Create a singleton client instance
 _client_instance = GarminClient()
 
@@ -30,6 +29,7 @@ def _handle_garmin_error(func):
 def get_daily_heart_rate(day: str | None = None) -> list[dict]:
     """Daily heart rate data for a day (YYYY-MM-DD)."""
     from garth.data import HeartRateData
+
     client = get_client()
     result = HeartRateData.get(day=day, client=client)
     return [_to_dict(entry) for entry in result]
@@ -40,6 +40,7 @@ def get_daily_heart_rate(day: str | None = None) -> list[dict]:
 def get_hrv(day: str | None = None) -> list[dict]:
     """HRV (Heart Rate Variability) data for a day (YYYY-MM-DD)."""
     from garth.data import HrvData
+
     client = get_client()
     result = HrvData.get(day=day, client=client)
     return [_to_dict(entry) for entry in result]
@@ -50,6 +51,7 @@ def get_hrv(day: str | None = None) -> list[dict]:
 def get_resting_heart_rate(day: str | None = None) -> dict:
     """Resting heart rate for a day (YYYY-MM-DD)."""
     from garth.data import RestingHeartRateData
+
     client = get_client()
     result = RestingHeartRateData.get(day=day, client=client)
     return _to_dict(result)

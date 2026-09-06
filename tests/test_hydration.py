@@ -1,4 +1,5 @@
 """Tests for mcp_garmin.hydration."""
+
 from __future__ import annotations
 
 from unittest.mock import MagicMock, patch

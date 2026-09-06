@@ -1,4 +1,5 @@
 """Tests for mcp_garmin.client."""
+
 from __future__ import annotations
 
 import unittest.mock
@@ -67,7 +68,9 @@ def test_to_dict_passthrough():
 
 def test_to_dict_asdict():
     obj = object()
-    with unittest.mock.patch.object(client, "asdict", return_value={"b": 2}) as mock_asdict:
+    with unittest.mock.patch.object(
+        client, "asdict", return_value={"b": 2}
+    ) as mock_asdict:
         result = _to_dict(obj)
     mock_asdict.assert_called_once_with(obj)
     assert result == {"b": 2}

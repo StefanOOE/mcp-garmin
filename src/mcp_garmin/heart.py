@@ -1,4 +1,5 @@
 """Heart tools: daily heart rate, HRV, resting heart rate."""
+
 from __future__ import annotations
 
 from .client import _handle_garmin_error, _to_dict, get_client

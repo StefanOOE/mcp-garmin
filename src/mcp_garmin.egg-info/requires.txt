@@ -1,0 +1,10 @@
+garth>=0.1.0
+pydantic>=2.0.0
+requests>=2.25.0
+
+[dev]
+pytest>=6.0.0
+pytest-cov>=2.10.0
+ruff>=0.0.284
+black>=22.0.0
+mypy>=0.900

@@ -1,4 +1,5 @@
 """MCP server exposing Garmin Connect fitness data as tools."""
+
 from __future__ import annotations
 
 from mcp.server import MCPServer
@@ -36,8 +37,10 @@ mcp = MCPServer(
 for tool in get_registered_tools():
     mcp.tool()(tool)
 
+
 def main() -> None:
     mcp.run()
+
 
 if __name__ == "__main__":
     main()

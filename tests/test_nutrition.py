@@ -1,4 +1,5 @@
 """Tests for mcp_garmin.nutrition."""
+
 from __future__ import annotations
 
 from unittest.mock import patch
@@ -17,7 +18,11 @@ def test_get_nutrition_log(monkeypatch, mock_client):
     """NutritionLog.get liefert dict → _to_dict zurück."""
     import mcp_garmin.nutrition as nutrition
 
-    fixture = {"total_calories": 2400, "total_protein": 150, "calendar_date": "2026-09-01"}
+    fixture = {
+        "total_calories": 2400,
+        "total_protein": 150,
+        "calendar_date": "2026-09-01",
+    }
     _patch_client(monkeypatch, mock_client)
 
     with patch("garth.data.NutritionLog.get", return_value=fixture) as mock_get:
@@ -64,7 +69,11 @@ def test_get_nutrition_status(monkeypatch, mock_client):
     """NutritionStatus.get returns dict → _to_dict returned."""
     import mcp_garmin.nutrition as nutrition
 
-    fixture = {"target_calories": 2500, "consumed_calories": 1200, "target_protein": 160}
+    fixture = {
+        "target_calories": 2500,
+        "consumed_calories": 1200,
+        "target_protein": 160,
+    }
     _patch_client(monkeypatch, mock_client)
 
     with patch("garth.data.NutritionStatus.get", return_value=fixture) as mock_get:

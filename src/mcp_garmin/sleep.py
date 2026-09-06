@@ -1,4 +1,5 @@
 """Sleep tools: sleep stages, detail data, daily summary (sleep part)."""
+
 from __future__ import annotations
 
 from typing import Any
@@ -65,7 +66,9 @@ def get_sleep_summary(day: str | None = None) -> dict:
 
     result = _to_dict(DailySummary.get(day=day, client=client))
     if isinstance(result, dict) and result:
-        sleep_part: dict[str, Any] = {k: v for k, v in result.items() if k in _SLEEP_FIELDS}
+        sleep_part: dict[str, Any] = {
+            k: v for k, v in result.items() if k in _SLEEP_FIELDS
+        }
         if sleep_part:
             return sleep_part
     return result

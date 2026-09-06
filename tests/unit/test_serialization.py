@@ -1,5 +1,3 @@
-import datetime
-from typing import Any
 from mcp_garmin.serialization import camel_to_snake_dict, project_sleep_fields
 
 
@@ -8,16 +6,16 @@ def test_camel_to_snake_dict():
     data = {
         "camelCaseKey": "value1",
         "anotherCamelCaseKey": "value2",
-        "normalKey": "value3"
+        "normalKey": "value3",
     }
-    
+
     result = camel_to_snake_dict(data)
     expected = {
         "camel_case_key": "value1",
         "another_camel_case_key": "value2",
-        "normal_key": "value3"
+        "normal_key": "value3",
     }
-    
+
     assert result == expected
 
 
@@ -29,17 +27,17 @@ def test_project_sleep_fields():
         "non_sleep_field": "value",
         "sleep_score": 85,
         "sleep_start_timestamp_gmt": 1634567890,
-        "other_field": "other_value"
+        "other_field": "other_value",
     }
-    
+
     result = project_sleep_fields(data)
     expected = {
         "sleeping_seconds": 28800,
         "sleep_time_seconds": 28800,
         "sleep_score": 85,
-        "sleep_start_timestamp_gmt": 1634567890
+        "sleep_start_timestamp_gmt": 1634567890,
     }
-    
+
     assert result == expected
 
 

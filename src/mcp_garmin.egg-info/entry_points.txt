@@ -1,0 +1,2 @@
+[console_scripts]
+mcp-garmin-login = mcp_garmin.login:main

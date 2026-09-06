@@ -5,7 +5,6 @@ from __future__ import annotations
 from .base import register
 from ..client import GarminClient
 
-
 # Create a singleton client instance
 _client_instance = GarminClient()
 
@@ -30,6 +29,7 @@ def _handle_garmin_error(func):
 def get_steps_goal() -> dict:
     """Steps goal."""
     from garth.data import StepsGoal
+
     client = get_client()
     result = StepsGoal.get(client=client)
     return _to_dict(result)
@@ -40,6 +40,7 @@ def get_steps_goal() -> dict:
 def get_weight_goal() -> dict:
     """Weight goal."""
     from garth.data import WeightGoal
+
     client = get_client()
     result = WeightGoal.get(client=client)
     return _to_dict(result)
@@ -50,6 +51,7 @@ def get_weight_goal() -> dict:
 def get_garmin_scores() -> dict:
     """Garmin fitness scores."""
     from garth.data import GarminScores
+
     client = get_client()
     result = GarminScores.get(client=client)
     return _to_dict(result)

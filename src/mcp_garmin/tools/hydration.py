@@ -5,7 +5,6 @@ from __future__ import annotations
 from .base import register
 from ..client import GarminClient
 
-
 # Create a singleton client instance
 _client_instance = GarminClient()
 
@@ -30,6 +29,7 @@ def _handle_garmin_error(func):
 def get_daily_hydration(day: str | None = None) -> dict:
     """Daily hydration data for a day (YYYY-MM-DD)."""
     from garth.data import HydrationData
+
     client = get_client()
     result = HydrationData.get(day=day, client=client)
     return _to_dict(result)
@@ -40,6 +40,7 @@ def get_daily_hydration(day: str | None = None) -> dict:
 def get_hydration_history(end: str | None = None, days: int = 7) -> list[dict]:
     """Hydration history for the last N days (up to end)."""
     from garth.data import HydrationData
+
     client = get_client()
     result = HydrationData.list(end=end, days=days, client=client)
     return [_to_dict(entry) for entry in result]

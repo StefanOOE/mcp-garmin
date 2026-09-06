@@ -1,4 +1,5 @@
 """Nutrition tools: nutrition log and nutrition status."""
+
 from __future__ import annotations
 
 from .client import _handle_garmin_error, _to_dict, get_client

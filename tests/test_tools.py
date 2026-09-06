@@ -1,8 +1,5 @@
 """Test suite for mcp-garmin tools."""
 
-import pytest
-from unittest.mock import Mock, patch
-
 from mcp_garmin.tools.base import register
 from mcp_garmin.tools.body import get_body_weight
 from mcp_garmin.tools.heart import get_daily_heart_rate
@@ -20,17 +17,17 @@ from mcp_garmin.tools.util import get_user_profile
 def test_tool_registration():
     """Test that all tools are properly registered."""
     # Test that our decorator works correctly
-    assert hasattr(get_body_weight, 'tool_metadata')
-    assert hasattr(get_daily_heart_rate, 'tool_metadata')
-    assert hasattr(get_sleep_summary, 'tool_metadata')
-    assert hasattr(get_daily_stress, 'tool_metadata')
-    assert hasattr(get_activities, 'tool_metadata')
-    assert hasattr(get_daily_steps, 'tool_metadata')
-    assert hasattr(get_daily_hydration, 'tool_metadata')
-    assert hasattr(get_connected_devices, 'tool_metadata')
-    assert hasattr(get_nutrition_log, 'tool_metadata')
-    assert hasattr(get_steps_goal, 'tool_metadata')
-    assert hasattr(get_user_profile, 'tool_metadata')
+    assert hasattr(get_body_weight, "tool_metadata")
+    assert hasattr(get_daily_heart_rate, "tool_metadata")
+    assert hasattr(get_sleep_summary, "tool_metadata")
+    assert hasattr(get_daily_stress, "tool_metadata")
+    assert hasattr(get_activities, "tool_metadata")
+    assert hasattr(get_daily_steps, "tool_metadata")
+    assert hasattr(get_daily_hydration, "tool_metadata")
+    assert hasattr(get_connected_devices, "tool_metadata")
+    assert hasattr(get_nutrition_log, "tool_metadata")
+    assert hasattr(get_steps_goal, "tool_metadata")
+    assert hasattr(get_user_profile, "tool_metadata")
 
 
 def test_tool_signatures():
@@ -49,7 +46,7 @@ def test_tool_signatures():
         get_steps_goal,
         get_user_profile,
     ]
-    
+
     for tool in tools:
         assert callable(tool)
 
@@ -57,5 +54,5 @@ def test_tool_signatures():
 def test_tool_decorators():
     """Test that tool decorators work correctly."""
     # Test registration decorator
-    assert hasattr(register, '__call__')
+    assert hasattr(register, "__call__")
     assert callable(register)

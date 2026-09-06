@@ -1,4 +1,5 @@
 """Body tools: weight, blood pressure, body battery."""
+
 from __future__ import annotations
 
 from .client import _handle_garmin_error, _to_dict, get_client
@@ -55,7 +56,9 @@ def get_body_battery_stress(day: str | None = None) -> dict:
 
 
 @_handle_garmin_error
-def get_body_battery_stress_history(end: str | None = None, days: int = 7) -> list[dict]:
+def get_body_battery_stress_history(
+    end: str | None = None, days: int = 7
+) -> list[dict]:
     """Body Battery + stress history for the last N days (up to end)."""
     client = get_client()
     from garth.data import DailyBodyBatteryStress

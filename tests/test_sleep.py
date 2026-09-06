@@ -1,4 +1,5 @@
 """Tests for mcp_garmin.sleep."""
+
 from __future__ import annotations
 
 from unittest.mock import MagicMock, patch
@@ -25,7 +26,10 @@ def test_get_sleep(monkeypatch):
 def test_get_sleep_detail(monkeypatch):
     import mcp_garmin.sleep as sleep_mod
 
-    fixture = {"sleep_start_timestamp_gmt": 1788100000000, "sleep_end_timestamp_gmt": 1788190000000}
+    fixture = {
+        "sleep_start_timestamp_gmt": 1788100000000,
+        "sleep_end_timestamp_gmt": 1788190000000,
+    }
     _patch_client(monkeypatch, MagicMock())
     with patch("garth.data.DailySleepData.get", return_value=fixture) as mock_get:
         result = sleep_mod.get_sleep_detail(day="2026-09-01")

@@ -2,13 +2,12 @@
 
 from __future__ import annotations
 
-import os
 from typing import TYPE_CHECKING, Any, Callable
 from functools import wraps
+import os
+import garth
 
-from garth import http
 from garth.exc import GarthException
-from garth.storage import FileTokenStorage
 from garth.utils import asdict
 
 if TYPE_CHECKING:
@@ -29,20 +28,21 @@ class GarminClient:
     def __init__(self, garth_client: Client | None = None) -> None:
         """Initialize GarminClient with optional injected garth client."""
         self._garth_client = garth_client
-        self._token_storage = FileTokenStorage(_TOKEN_DIR)
+        # Token storage is handled differently in newer garth versions
+        self._token_dir = os.path.expanduser(_TOKEN_DIR)
 
     def get_client(self) -> garth.http.Client:
         """Get or create a garth client with token persistence."""
         if self._garth_client is not None:
             return self._garth_client
-        
+
         global _client
         if _client is not None:
             return _client
-            
+
         c = garth.http.client
-        c.storage = self._token_storage
-        c.oauth2_token = c.storage.load()
+        # Token handling is now done differently in newer versions
+        # We'll rely on garth's built-in token handling
         _client = c
         return c
 

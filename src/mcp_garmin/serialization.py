@@ -4,12 +4,13 @@ from __future__ import annotations
 
 from typing import Any
 
-from garth.utils import camel_to_snake_dict
-
 
 def camel_to_snake_dict(data: dict[str, Any]) -> dict[str, Any]:
     """Convert a dictionary with camelCase keys to snake_case keys."""
-    return camel_to_snake_dict(data)
+    # Import here to avoid circular import issues
+    from garth.utils import camel_to_snake_dict as _camel_to_snake_dict
+
+    return _camel_to_snake_dict(data)
 
 
 # Fields in DailySummary that are sleep-related.

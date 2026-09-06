@@ -1,4 +1,5 @@
 """Tests for mcp_garmin.activity."""
+
 from __future__ import annotations
 
 from unittest.mock import MagicMock, patch
@@ -76,7 +77,9 @@ def test_get_personal_record_types(monkeypatch):
 
     fixture = {"type_id": 12, "name": "FASTEST_TIME"}
     _patch_client(monkeypatch, MagicMock())
-    with patch("garth.data.PersonalRecordType.list", return_value=[fixture]) as mock_list:
+    with patch(
+        "garth.data.PersonalRecordType.list", return_value=[fixture]
+    ) as mock_list:
         result = activity_mod.get_personal_record_types()
     mock_list.assert_called_once()
     assert result == [fixture]

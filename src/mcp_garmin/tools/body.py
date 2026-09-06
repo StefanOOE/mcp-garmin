@@ -5,7 +5,6 @@ from __future__ import annotations
 from .base import register
 from ..client import GarminClient
 
-
 # Create a singleton client instance
 _client_instance = GarminClient()
 
@@ -30,6 +29,7 @@ def _handle_garmin_error(func):
 def get_body_weight(day: str | None = None) -> dict:
     """Body weight for a day (YYYY-MM-DD) — grams, BMI, body fat, etc."""
     from garth.data import WeightData
+
     client = get_client()
     result = WeightData.get(day=day, client=client)
     return _to_dict(result)
@@ -40,6 +40,7 @@ def get_body_weight(day: str | None = None) -> dict:
 def get_weight_history(end: str | None = None, days: int = 7) -> list[dict]:
     """Weight history for the last N days (up to end, YYYY-MM-DD)."""
     from garth.data import WeightData
+
     client = get_client()
     result = WeightData.list(end=end, days=days, client=client)
     return [_to_dict(entry) for entry in result]
@@ -50,6 +51,7 @@ def get_weight_history(end: str | None = None, days: int = 7) -> list[dict]:
 def get_blood_pressure(day: str | None = None) -> dict:
     """Blood pressure reading for a day (YYYY-MM-DD)."""
     from garth.data import BloodPressure
+
     client = get_client()
     result = BloodPressure.get(day=day, client=client)
     return _to_dict(result)
@@ -60,6 +62,7 @@ def get_blood_pressure(day: str | None = None) -> dict:
 def get_body_battery(day: str | None = None) -> list[dict]:
     """Body Battery readings for a day (YYYY-MM-DD)."""
     from garth.data import BodyBatteryData
+
     client = get_client()
     result = BodyBatteryData.get(day=day, client=client)
     return [_to_dict(entry) for entry in result]
@@ -70,6 +73,7 @@ def get_body_battery(day: str | None = None) -> list[dict]:
 def get_body_battery_stress(day: str | None = None) -> dict:
     """Body Battery + stress summary for a day (YYYY-MM-DD)."""
     from garth.data import DailyBodyBatteryStress
+
     client = get_client()
     result = DailyBodyBatteryStress.get(day=day, client=client)
     return _to_dict(result)
@@ -77,9 +81,12 @@ def get_body_battery_stress(day: str | None = None) -> dict:
 
 @register
 @_handle_garmin_error
-def get_body_battery_stress_history(end: str | None = None, days: int = 7) -> list[dict]:
+def get_body_battery_stress_history(
+    end: str | None = None, days: int = 7
+) -> list[dict]:
     """Body Battery + stress history for the last N days (up to end)."""
     from garth.data import DailyBodyBatteryStress
+
     client = get_client()
     result = DailyBodyBatteryStress.list(end=end, days=days, client=client)
     return [_to_dict(entry) for entry in result]

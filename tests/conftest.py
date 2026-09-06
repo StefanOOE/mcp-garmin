@@ -1,4 +1,5 @@
 """Shared pytest fixtures for mcp-garmin."""
+
 from __future__ import annotations
 
 from unittest.mock import MagicMock

@@ -5,7 +5,6 @@ from __future__ import annotations
 from .base import register
 from ..client import GarminClient
 
-
 # Create a singleton client instance
 _client_instance = GarminClient()
 
@@ -30,6 +29,7 @@ def _handle_garmin_error(func):
 def get_sleep(day: str | None = None) -> list[dict]:
     """Sleep data for a day (YYYY-MM-DD)."""
     from garth.data import SleepData
+
     client = get_client()
     result = SleepData.get(day=day, client=client)
     return [_to_dict(entry) for entry in result]
@@ -40,6 +40,7 @@ def get_sleep(day: str | None = None) -> list[dict]:
 def get_sleep_detail(day: str | None = None) -> dict:
     """Detailed sleep data for a day (YYYY-MM-DD)."""
     from garth.data import SleepDetailData
+
     client = get_client()
     result = SleepDetailData.get(day=day, client=client)
     return _to_dict(result)
@@ -50,6 +51,7 @@ def get_sleep_detail(day: str | None = None) -> dict:
 def get_sleep_summary(day: str | None = None) -> dict:
     """Sleep summary for a day (YYYY-MM-DD)."""
     from garth.data import SleepSummaryData
+
     client = get_client()
     result = SleepSummaryData.get(day=day, client=client)
     return _to_dict(result)

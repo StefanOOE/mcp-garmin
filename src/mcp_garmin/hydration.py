@@ -1,4 +1,5 @@
 """Hydration tools: daily fluid intake and history."""
+
 from __future__ import annotations
 
 from .client import _handle_garmin_error, _to_dict, get_client

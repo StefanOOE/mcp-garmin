@@ -1,4 +1,5 @@
 """Tests for mcp_garmin.stress."""
+
 from __future__ import annotations
 
 from unittest.mock import MagicMock, patch
@@ -14,7 +15,9 @@ def test_get_daily_stress(monkeypatch, daily_stress_fixture):
     import mcp_garmin.stress as stress_mod
 
     _patch_client(monkeypatch, MagicMock())
-    with patch("garth.DailyStress.list", return_value=[daily_stress_fixture]) as mock_list:
+    with patch(
+        "garth.DailyStress.list", return_value=[daily_stress_fixture]
+    ) as mock_list:
         result = stress_mod.get_daily_stress(end="2026-08-31", days=1)
     mock_list.assert_called_once()
     assert mock_list.call_args.kwargs["end"] == "2026-08-31"
@@ -26,7 +29,9 @@ def test_get_weekly_stress(monkeypatch, daily_stress_fixture):
     import mcp_garmin.stress as stress_mod
 
     _patch_client(monkeypatch, MagicMock())
-    with patch("garth.DailyStress.list", return_value=[daily_stress_fixture]) as mock_list:
+    with patch(
+        "garth.DailyStress.list", return_value=[daily_stress_fixture]
+    ) as mock_list:
         result = stress_mod.get_weekly_stress(end="2026-08-31")
     mock_list.assert_called_once()
     assert mock_list.call_args.kwargs["end"] == "2026-08-31"
@@ -39,7 +44,9 @@ def test_get_training_status_daily(monkeypatch):
 
     fixture = {"training_readiness_score": 72, "calendar_date": "2026-09-01"}
     _patch_client(monkeypatch, MagicMock())
-    with patch("garth.data.TrainingReadinessData.get", return_value=[fixture]) as mock_get:
+    with patch(
+        "garth.data.TrainingReadinessData.get", return_value=[fixture]
+    ) as mock_get:
         result = stress_mod.get_training_status_daily(day="2026-09-01")
     mock_get.assert_called_once()
     assert mock_get.call_args.kwargs["day"] == "2026-09-01"
@@ -51,7 +58,9 @@ def test_get_training_status_weekly(monkeypatch):
 
     fixture = {"training_readiness_score": 70}
     _patch_client(monkeypatch, MagicMock())
-    with patch("garth.data.TrainingReadinessData.get", return_value=[fixture]) as mock_get:
+    with patch(
+        "garth.data.TrainingReadinessData.get", return_value=[fixture]
+    ) as mock_get:
         result = stress_mod.get_training_status_weekly(end="2026-09-01")
     mock_get.assert_called_once()
     assert mock_get.call_args.kwargs["day"] == "2026-09-01"
@@ -63,7 +72,9 @@ def test_get_training_status_monthly(monkeypatch):
 
     fixture = {"training_readiness_score": 65}
     _patch_client(monkeypatch, MagicMock())
-    with patch("garth.data.TrainingReadinessData.get", return_value=[fixture]) as mock_get:
+    with patch(
+        "garth.data.TrainingReadinessData.get", return_value=[fixture]
+    ) as mock_get:
         result = stress_mod.get_training_status_monthly(end="2026-09-01")
     mock_get.assert_called_once()
     assert mock_get.call_args.kwargs["day"] == "2026-09-01"
@@ -97,7 +108,9 @@ def test_get_morning_readiness_is_alias(monkeypatch):
 
     fixture = {"training_readiness_score": 72}
     _patch_client(monkeypatch, MagicMock())
-    with patch("garth.data.MorningTrainingReadinessData.get", return_value=fixture) as mock_get:
+    with patch(
+        "garth.data.MorningTrainingReadinessData.get", return_value=fixture
+    ) as mock_get:
         result = stress_mod.get_morning_readiness(day="2026-09-01")
     mock_get.assert_called_once()
     assert mock_get.call_args.kwargs["day"] == "2026-09-01"

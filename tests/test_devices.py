@@ -1,4 +1,5 @@
 """Tests for mcp_garmin.devices."""
+
 from __future__ import annotations
 
 from unittest.mock import patch
@@ -24,7 +25,11 @@ def test_get_device_info_via_connectapi(monkeypatch, mock_client):
     result = devices.get_device_info()
 
     mock_client.connectapi.assert_called_once()
-    assert result == {"device_type": "watch", "device_name": "Fenix 7", "battery_level": 80}
+    assert result == {
+        "device_type": "watch",
+        "device_name": "Fenix 7",
+        "battery_level": 80,
+    }
 
 
 def test_get_device_info_connectapi_empty(monkeypatch, mock_client):

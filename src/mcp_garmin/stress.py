@@ -1,4 +1,5 @@
 """Stress tools: daily/weekly stress, training status, morning readiness."""
+
 from __future__ import annotations
 
 from .client import _handle_garmin_error, _to_dict, get_client

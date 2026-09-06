@@ -27,7 +27,9 @@ class GarminService:
             # Handle any unexpected errors gracefully
             return {}
 
-    def weight_history(self, end: str | None = None, days: int = 7) -> list[dict[str, Any]]:
+    def weight_history(
+        self, end: str | None = None, days: int = 7
+    ) -> list[dict[str, Any]]:
         """Get weight history for the last N days."""
         try:
             result = self.repository.weight_history(end=end, days=days)
@@ -71,7 +73,9 @@ class GarminService:
             # Handle any unexpected errors gracefully
             return {}
 
-    def body_battery_stress_history(self, end: str | None = None, days: int = 7) -> list[dict[str, Any]]:
+    def body_battery_stress_history(
+        self, end: str | None = None, days: int = 7
+    ) -> list[dict[str, Any]]:
         """Get body battery + stress history for the last N days."""
         try:
             result = self.repository.body_battery_stress_history(end=end, days=days)
@@ -104,7 +108,9 @@ class GarminService:
             # Handle any unexpected errors gracefully
             return []
 
-    def resting_heart_rate(self, end: str | None = None, days: int = 1) -> list[dict[str, Any]]:
+    def resting_heart_rate(
+        self, end: str | None = None, days: int = 1
+    ) -> list[dict[str, Any]]:
         """Get resting heart rate history for the last N days."""
         try:
             result = self.repository.resting_heart_rate(end=end, days=days)
@@ -148,7 +154,9 @@ class GarminService:
             # Handle any unexpected errors gracefully
             return {}
 
-    def daily_stress(self, end: str | None = None, days: int = 1) -> list[dict[str, Any]]:
+    def daily_stress(
+        self, end: str | None = None, days: int = 1
+    ) -> list[dict[str, Any]]:
         """Get stress history for the last N days."""
         try:
             result = self.repository.daily_stress(end=end, days=days)
@@ -251,7 +259,9 @@ class GarminService:
             # Handle any unexpected errors gracefully
             return {}
 
-    def fitness_activities(self, end: str | None = None, days: int = 7) -> list[dict[str, Any]]:
+    def fitness_activities(
+        self, end: str | None = None, days: int = 7
+    ) -> list[dict[str, Any]]:
         """Get fitness activities for the last N days."""
         try:
             result = self.repository.fitness_activities(end=end, days=days)
@@ -317,7 +327,9 @@ class GarminService:
             # Handle any unexpected errors gracefully
             return {}
 
-    def daily_summary_history(self, end: str | None = None, days: int = 7) -> list[dict[str, Any]]:
+    def daily_summary_history(
+        self, end: str | None = None, days: int = 7
+    ) -> list[dict[str, Any]]:
         """Get daily summary history for the last N days."""
         try:
             result = self.repository.daily_summary_history(end=end, days=days)
@@ -339,7 +351,9 @@ class GarminService:
             # Handle any unexpected errors gracefully
             return {}
 
-    def hydration_history(self, end: str | None = None, days: int = 1) -> list[dict[str, Any]]:
+    def hydration_history(
+        self, end: str | None = None, days: int = 1
+    ) -> list[dict[str, Any]]:
         """Get fluid intake history for the last N days."""
         try:
             result = self.repository.hydration_history(end=end, days=days)
