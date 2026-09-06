@@ -1,58 +1,83 @@
-"""Token handling + casing + error cascade for the Garmin API."""
+"""Client and token handling for Garmin API."""
+
 from __future__ import annotations
 
-from collections.abc import Callable
+import os
+from typing import TYPE_CHECKING, Any, Callable
 from functools import wraps
-from typing import Any
 
-import garth
+from garth import http
 from garth.exc import GarthException
 from garth.storage import FileTokenStorage
 from garth.utils import asdict
+
+if TYPE_CHECKING:
+    from garth.http import Client
+
 
 _TOKEN_DIR = "~/.garth"
 _client: garth.http.Client | None = None
 
 
 class ToolError(Exception):
-    """Returned to MCP tools when a Garmin API error occurs."""
+    """Raised by tools when a Garmin API error occurs."""
 
 
-def get_client() -> garth.http.Client:
-    """Load token from ~/.garth/ and return the cached garth client."""
-    global _client
-    if _client is not None:
-        return _client
-    c = garth.http.client
-    c.storage = FileTokenStorage(_TOKEN_DIR)
-    c.oauth2_token = c.storage.load()
-    _client = c
-    return c
+class GarminClient:
+    """Thin GarminClient wrapper around garth session with dependency injection."""
 
+    def __init__(self, garth_client: Client | None = None) -> None:
+        """Initialize GarminClient with optional injected garth client."""
+        self._garth_client = garth_client
+        self._token_storage = FileTokenStorage(_TOKEN_DIR)
 
-def _to_dict(obj: Any) -> dict:
-    """Serialize a Garmin API object to a JSON-serializable dict (snake_case)."""
-    if obj is None:
-        return {}
-    if isinstance(obj, dict):
-        return obj
-    return asdict(obj)
+    def get_client(self) -> garth.http.Client:
+        """Get or create a garth client with token persistence."""
+        if self._garth_client is not None:
+            return self._garth_client
+        
+        global _client
+        if _client is not None:
+            return _client
+            
+        c = garth.http.client
+        c.storage = self._token_storage
+        c.oauth2_token = c.storage.load()
+        _client = c
+        return c
 
+    def _to_dict(self, obj: Any) -> dict:
+        """Serialize a Garmin API object to a JSON-serializable dict (snake_case)."""
+        if obj is None:
+            return {}
+        if isinstance(obj, dict):
+            return obj
+        return asdict(obj)
 
-def _handle_garmin_error(func: Callable) -> Callable:
-    """Decorator: catches GarthException and raises ToolError with a descriptive message."""
+    def _handle_garmin_error(self, func: Callable) -> Callable:
+        """Decorator: catches GarthException and raises ToolError with a descriptive message."""
 
-    @wraps(func)
-    def wrapper(*args, **kwargs):
-        try:
-            return func(*args, **kwargs)
-        except GarthException as e:
-            msg = str(e)
-            if "token" in msg.lower():
-                raise ToolError(
-                    f"Garmin token error: {msg}. "
-                    "Token expired — run .venv/bin/python garmin_login.py."
-                ) from e
-            raise ToolError(f"Garmin API error: {msg}") from e
+        @wraps(func)
+        def wrapper(*args, **kwargs):
+            try:
+                return func(*args, **kwargs)
+            except GarthException as e:
+                msg = str(e)
+                if "token" in msg.lower():
+                    raise ToolError(
+                        f"Garmin token error: {msg}. "
+                        "Token expired — run .venv/bin/python garmin_login.py."
+                    ) from e
+                raise ToolError(f"Garmin API error: {msg}") from e
 
-    return wrapper
+        return wrapper
+
+    def get(self, *args, **kwargs) -> Any:
+        """Pass-through to garth client get method."""
+        client = self.get_client()
+        return client.get(*args, **kwargs)
+
+    def list(self, *args, **kwargs) -> Any:
+        """Pass-through to garth client list method."""
+        client = self.get_client()
+        return client.list(*args, **kwargs)

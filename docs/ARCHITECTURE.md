@@ -1,13 +1,14 @@
 # mcp-garmin
 
-MCP server for accessing Garmin Connect data.
+MCP server exposing Garmin Connect data as tools.
 
 ## Features
 
-- Complete Garmin Connect data access via MCP protocol
-- Modular architecture with clear separation of concerns
-- Comprehensive test coverage
-- Automated CI/CD pipeline
+- Complete Garmin Connect API coverage
+- Modular tool-based architecture
+- MCP protocol compliance
+- Comprehensive error handling
+- Type-safe interfaces
 
 ## Installation
 
@@ -41,33 +42,28 @@ source .venv/bin/activate
 pip install -e .
 ```
 
-### Running Tests
+### Testing
 
 ```bash
+# Run tests
 pytest tests/
+
+# Run with coverage
+pytest tests/ --cov=mcp_garmin
 ```
 
 ### Code Quality
 
 ```bash
-# Lint
+# Lint code
 ruff check .
 
 # Type check
 mypy .
 
-# Format
+# Format code
 ruff format .
 ```
-
-## Architecture
-
-The project follows a layered architecture:
-
-1. **Tools Layer**: Individual tools for specific Garmin data access
-2. **Service Layer**: Business logic facade
-3. **Repository Layer**: Data access abstraction
-4. **Client Layer**: Garmin API integration
 
 ## Available Tools
 
@@ -82,6 +78,16 @@ The project follows a layered architecture:
 - Nutrition tools: nutrition log and nutrition status
 - Goal tools: steps goal, weight goal, Garmin fitness scores
 - Util tools: user profile and user settings
+
+## Architecture
+
+The project follows a layered architecture:
+
+1. **Tools Layer**: Individual tool implementations with decorators
+2. **Service Layer**: Business logic and orchestration
+3. **Repository Layer**: Data access with the Repository pattern
+4. **Client Layer**: Garmin API integration and token handling
+5. **Error Handling**: Custom exception hierarchy
 
 ## Contributing
 
