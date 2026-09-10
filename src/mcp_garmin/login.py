@@ -1,43 +1,27 @@
 #!/usr/bin/env python3
-# One-time Garmin login for mcp-garmin (garth-ng 2.0.0a1).
-# Stores the token as JSON under ~/.garth/oauth2_token.json and verifies
-# with a real API call. The MCP process must then be started with the
-# same HOME (default: /home/ss).
+# Garmin login for mcp-garmin (garth 0.8.0).
+# Sets GARTH_HOME so garth auto-persists both oauth1_token.json and
+# oauth2_token.json under ~/.garth/. The MCP server uses the same GARTH_HOME
+# to auto-resume the session.
 import getpass
-import json
 import os
 import sys
-from pathlib import Path
-import garth
-from garth.storage import OAUTH2_TOKEN_FILE
-
-
-def save_token(token, path: Path) -> None:
-    path.mkdir(parents=True, exist_ok=True)
-    target = path / OAUTH2_TOKEN_FILE
-    payload = garth.utils.asdict(token) if hasattr(garth, "utils") else None
-    if payload is None:
-        from garth.utils import asdict
-
-        payload = asdict(token)
-    target.write_text(json.dumps(payload, indent=4))
-    os.chmod(target, 0o600)
-    print(f"Token saved to {target}")
-
-
-def verify(username: str) -> None:
-    profile = garth.UserProfile.get()
-    actual = profile.get("userName", "?") if isinstance(profile, dict) else "?"
-    print(f"Verified: profile '{actual}' accessible")
 
 
 def main() -> int:
-    email = input("Garmin email: ").strip()
+    # Must be set before first access to garth.http.client so _auto_resume()
+    # knows where to load/dump tokens.
+    os.environ["GARTH_HOME"] = os.path.expanduser("~/.garth")
+    import garth
+
+    email = "garmin.com.ploy864@passmail.net"
     password = getpass.getpass("Garmin password: ")
-    token = garth.login(email, password)
-    save_token(token, Path(os.path.expanduser("~/.garth")))
+    garth.login(email, password)  # auto-dumps oauth1 + oauth2 to GARTH_HOME
+
     try:
-        verify(email)
+        profile = garth.UserProfile.get()
+        actual = profile.user_name if hasattr(profile, "user_name") else str(profile)
+        print(f"Verified: profile '{actual}' accessible")
     except Exception as exc:
         print(f"Login ok, but verification failed: {exc}")
         return 1

@@ -40,9 +40,9 @@ class GarminClient:
         if _client is not None:
             return _client
 
-        c = garth.http.client
-        # Token handling is now done differently in newer versions
-        # We'll rely on garth's built-in token handling
+        # Ensure GARTH_HOME is set so garth auto-loads both tokens.
+        os.environ.setdefault("GARTH_HOME", self._token_dir)
+        c = garth.http.client  # _auto_resume() loads from GARTH_HOME
         _client = c
         return c
 
