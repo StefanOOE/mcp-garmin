@@ -49,9 +49,6 @@ def test_tool_surface_contract():
             "get_fitness_activities",
             "get_personal_records",
             "get_personal_record_types",
-            # devices
-            "get_connected_devices",
-            "get_device_info",
             # nutrition
             "get_nutrition_log",
             "get_nutrition_status",
