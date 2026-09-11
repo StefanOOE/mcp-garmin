@@ -1,8 +1,14 @@
-"""Tests for mcp_garmin.nutrition."""
+"""Tests for mcp_garmin.nutrition (garth-ng 1.1.0 Endpoint-Fallback).
+
+Both tools use ``client.connectapi(path)`` + ``camel_to_snake_dict()``
+(S1 §1.7). These tests assert the exact path contract:
+* log    -- ``/nutrition-service/food/logs/{day}`` (day defaults to today).
+* status -- ``/nutrition-service/user/nutritionCurrentStatus`` (no day).
+"""
 
 from __future__ import annotations
 
-from unittest.mock import patch
+from datetime import date
 
 
 def _patch_client(monkeypatch, mock_client):
@@ -15,82 +21,110 @@ def _patch_client(monkeypatch, mock_client):
 
 
 def test_get_nutrition_log(monkeypatch, mock_client):
-    """NutritionLog.get liefert dict → _to_dict zurück."""
+    """connectapi returns a day-log dict → camelCase is converted to snake_case."""
     import mcp_garmin.nutrition as nutrition
 
     fixture = {
-        "total_calories": 2400,
-        "total_protein": 150,
-        "calendar_date": "2026-09-01",
+        "mealDate": "2026-09-01",
+        "dayStartTime": 1788153326000,
+        "dailyNutritionGoals": {"calories": 2500, "protein": 160},
+        "mealDetails": [{"foodName": "Coffee", "calories": 5}],
     }
+    mock_client.connectapi.return_value = fixture
     _patch_client(monkeypatch, mock_client)
 
-    with patch("garth.data.NutritionLog.get", return_value=fixture) as mock_get:
-        result = nutrition.get_nutrition_log(day="2026-09-01")
+    result = nutrition.get_nutrition_log(day="2026-09-01")
 
-    mock_get.assert_called_once()
-    assert mock_get.call_args.kwargs["day"] == "2026-09-01"
-    assert mock_get.call_args.kwargs["client"] is not None
-    assert result == fixture
+    mock_client.connectapi.assert_called_once_with(
+        "/nutrition-service/food/logs/2026-09-01"
+    )
+    assert result == {
+        "meal_date": "2026-09-01",
+        "day_start_time": 1788153326000,
+        "daily_nutrition_goals": {"calories": 2500, "protein": 160},
+        "meal_details": [{"food_name": "Coffee", "calories": 5}],
+    }
+
+
+def test_get_nutrition_log_defaults_to_today(monkeypatch, mock_client):
+    """Ohne day-Parameter → heute (ISO) wird im Pfad verwendet."""
+    import mcp_garmin.nutrition as nutrition
+
+    mock_client.connectapi.return_value = {"mealDate": date.today().isoformat()}
+    _patch_client(monkeypatch, mock_client)
+
+    result = nutrition.get_nutrition_log()
+
+    expected_path = f"/nutrition-service/food/logs/{date.today().isoformat()}"
+    mock_client.connectapi.assert_called_once_with(expected_path)
+    assert result == {"meal_date": date.today().isoformat()}
 
 
 def test_get_nutrition_log_none(monkeypatch, mock_client):
-    """NutritionLog.get liefert None → {} zurück."""
+    """connectapi liefert None → {} zurück."""
     import mcp_garmin.nutrition as nutrition
 
+    mock_client.connectapi.return_value = None
     _patch_client(monkeypatch, mock_client)
 
-    with patch("garth.data.NutritionLog.get", return_value=None) as mock_get:
-        result = nutrition.get_nutrition_log(day="2026-09-01")
+    result = nutrition.get_nutrition_log(day="2026-09-01")
 
-    mock_get.assert_called_once()
+    mock_client.connectapi.assert_called_once_with(
+        "/nutrition-service/food/logs/2026-09-01"
+    )
     assert result == {}
 
 
-def test_get_nutrition_log_no_day(monkeypatch, mock_client):
-    """Ohne day-Parameter → day=None übergeben."""
+def test_get_nutrition_log_empty_dict(monkeypatch, mock_client):
+    """connectapi liefert leeres Dict → {} zurück."""
     import mcp_garmin.nutrition as nutrition
 
-    fixture = {"total_calories": 2000}
+    mock_client.connectapi.return_value = {}
     _patch_client(monkeypatch, mock_client)
 
-    with patch("garth.data.NutritionLog.get", return_value=fixture) as mock_get:
-        result = nutrition.get_nutrition_log()
+    result = nutrition.get_nutrition_log(day="2026-09-01")
 
-    mock_get.assert_called_once()
-    assert mock_get.call_args.kwargs["day"] is None
-    assert result == fixture
+    assert result == {}
 
 
 # --- get_nutrition_status ---
 
 
 def test_get_nutrition_status(monkeypatch, mock_client):
-    """NutritionStatus.get returns dict → _to_dict returned."""
+    """connectapi returns the current status dict → snake_case, no day param."""
     import mcp_garmin.nutrition as nutrition
 
     fixture = {
-        "target_calories": 2500,
-        "consumed_calories": 1200,
-        "target_protein": 160,
+        "currentStatus": "MFP_ENABLED",
+        "hasUsedNutrition": False,
+        "hasUsedMFP": True,
     }
+    mock_client.connectapi.return_value = fixture
     _patch_client(monkeypatch, mock_client)
 
-    with patch("garth.data.NutritionStatus.get", return_value=fixture) as mock_get:
-        result = nutrition.get_nutrition_status()
+    result = nutrition.get_nutrition_status()
 
-    mock_get.assert_called_once()
-    assert result == fixture
+    # No day parameter — always the current-status endpoint.
+    mock_client.connectapi.assert_called_once_with(
+        "/nutrition-service/user/nutritionCurrentStatus"
+    )
+    assert result == {
+        "current_status": "MFP_ENABLED",
+        "has_used_nutrition": False,
+        "has_used_mfp": True,
+    }
 
 
 def test_get_nutrition_status_none(monkeypatch, mock_client):
-    """NutritionStatus.get returns None → {} returned."""
+    """connectapi returns None → {} returned."""
     import mcp_garmin.nutrition as nutrition
 
+    mock_client.connectapi.return_value = None
     _patch_client(monkeypatch, mock_client)
 
-    with patch("garth.data.NutritionStatus.get", return_value=None) as mock_get:
-        result = nutrition.get_nutrition_status()
+    result = nutrition.get_nutrition_status()
 
-    mock_get.assert_called_once()
+    mock_client.connectapi.assert_called_once_with(
+        "/nutrition-service/user/nutritionCurrentStatus"
+    )
     assert result == {}
