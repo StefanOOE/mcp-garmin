@@ -47,7 +47,7 @@ def test_garmin_client_get_client_no_injected_client():
         # Just test that the method doesn't crash
         client = GarminClient()
         result = client.get_client()
-        
+
         # Verify it returns some kind of client object
         assert result is not None
         # We can't easily mock the garth client due to how it's constructed,
