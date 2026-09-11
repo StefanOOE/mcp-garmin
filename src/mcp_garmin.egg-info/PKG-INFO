@@ -6,10 +6,11 @@ Author-email: Stefan Strauß-Haslinglehner <garmin.com.ploy864@passmail.net>
 License-Expression: MIT
 Project-URL: Homepage, https://github.com/yourusername/mcp-garmin
 Project-URL: Repository, https://github.com/yourusername/mcp-garmin
-Requires-Python: >=3.9
+Requires-Python: >=3.10
 Description-Content-Type: text/markdown
 License-File: LICENSE
-Requires-Dist: garth>=0.1.0
+Requires-Dist: garth-ng<2.0,>=1.1.0
+Requires-Dist: mcp>=1.0
 Requires-Dist: pydantic>=2.0.0
 Requires-Dist: requests>=2.25.0
 Provides-Extra: dev
