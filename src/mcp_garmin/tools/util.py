@@ -28,7 +28,7 @@ def _handle_garmin_error(func):
 @_handle_garmin_error
 def get_user_profile() -> dict:
     """User profile."""
-    from garth.data import UserProfile
+    from garth.users import UserProfile
 
     client = get_client()
     result = UserProfile.get(client=client)
@@ -39,7 +39,7 @@ def get_user_profile() -> dict:
 @_handle_garmin_error
 def get_user_settings() -> dict:
     """User settings."""
-    from garth.data import UserSettings
+    from garth.users import UserSettings
 
     client = get_client()
     result = UserSettings.get(client=client)
