@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-# Garmin login for mcp-garmin (garth 0.8.0).
+# Garmin login for mcp-garmin (garth-ng 1.1.0).
 # Sets GARTH_HOME so garth auto-persists both oauth1_token.json and
 # oauth2_token.json under ~/.garth/. The MCP server uses the same GARTH_HOME
 # to auto-resume the session.

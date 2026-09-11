@@ -11,7 +11,7 @@
 
 ## 1. Context & Goal
 
-**Problem.** Der mcp-garmin MCP-Server (39 registrierte Tools) läuft auf `garth>=0.1.0` (legacy), das nicht mehr gepflegt wird. Neue Garmin-Connect-Änderungen (SSO-Flow, Cloudflare, Rate-Limits) brechen den Server bei Token-/Auth-Wechseln: `garth 0.x` nutzt OAuth1+OAuth2, während Garmin heute SSO + OAuth2-only liefert. Der aktuelle Code in `tools/*` referenziert zudem ~20 Legacy-Klassen (`Activities`, `ActivityDetail`, `ActivityMap`, `FitnessActivities`, `PersonalRecords`, `PersonalRecordTypes`, `NutritionLog`, `NutritionStatus`, `HydrationData`, `BloodPressure`, `ConnectedDevices`, `DeviceInfo`, `StepsGoal`, `WeightGoal`, `GarminScores`, `HeartRateData`, `HrvData`, `RestingHeartRateData`, `DailyStressData`, `WeeklyStressData`, `TrainingStatusDaily/Weekly/Monthly`, `TrainingReadiness`, `MorningReadiness`, `StepsData`, `WeeklyStepsData`), die in `garth-ng 1.1.0` nicht mehr existieren — diese Tools werfen `ImportError` zur Laufzeit und sind faktisch tot.
+**Problem.** Der mcp-garmin MCP-Server (40 registrierte Tools) läuft auf `garth>=0.1.0` (legacy), das nicht mehr gepflegt wird. Neue Garmin-Connect-Änderungen (SSO-Flow, Cloudflare, Rate-Limits) brechen den Server bei Token-/Auth-Wechseln: `garth 0.x` nutzt OAuth1+OAuth2, während Garmin heute SSO + OAuth2-only liefert. Der aktuelle Code in `tools/*` referenziert zudem ~20 Legacy-Klassen (`Activities`, `ActivityDetail`, `ActivityMap`, `FitnessActivities`, `PersonalRecords`, `PersonalRecordTypes`, `NutritionLog`, `NutritionStatus`, `HydrationData`, `BloodPressure`, `ConnectedDevices`, `DeviceInfo`, `StepsGoal`, `WeightGoal`, `GarminScores`, `HeartRateData`, `HrvData`, `RestingHeartRateData`, `DailyStressData`, `WeeklyStressData`, `TrainingStatusDaily/Weekly/Monthly`, `TrainingReadiness`, `MorningReadiness`, `StepsData`, `WeeklyStepsData`), die in `garth-ng 1.1.0` nicht mehr existieren — diese Tools werfen `ImportError` zur Laufzeit und sind faktisch tot.
 
 **Business-Goal.** Volle Funktion auf `garth-ng==1.1.0` (aktiver, gepflegter Fork: SSO-Login, `Client.refresh_token()` ohne SSO-Neulauf, `GARTH_HOME`-Token-Persistenz, Dataclass-API, `curl-cffi`-Browser-Emulation gegen Cloudflare) — mit maximalem Feature-Erhalt: Tool-Fläche bleibt so weit wie möglich stabil, jede Abweichung (Drop/Remap/Field-Change) ist in diesem Konzept dokumentiert. Damit bleibt der Server als Sleep/Activity/Wellness-Datenquelle im Hermes-Stack langfristig wartbar.
 
@@ -24,13 +24,13 @@
 - `errors.py`: `GarthException`-Hierarchie (u.a. `AuthenticationError`, `RateLimitError`, `CloudflareError`) in `ToolError`/`TokenError` mappen.
 
 **Was sich NICHT ändert (Nicht-Ziele):**
-- Keine neuen Features jenseits der bestehenden 39er Tool-Fläche (kein Fitness/Workout-CRUD, kein Upload, kein Hydration-Log-Write).
+- Keine neuen Features jenseits der bestehenden 40er Tool-Fläche (kein Fitness/Workout-CRUD, kein Upload, kein Hydration-Log-Write).
 - Keine Frontend-Änderungen (existiert nicht).
 - Kein DB-/Persistenz-Design jenseits `~/.garth/oauth2_token.json` (`GARTH_HOME`).
 - Kein Breaking-Change an der Hermes-MCP-Registrierung, außer durch dokumentierte Drops (Sektion 3.3).
 - Tool-Namen, die sich ändern, behalten wo immer möglich ihren Namen (siehe Sektion 3.3 Drop-/Remap-Liste).
 
-**Zielzustand (Definition of Done auf Konzept-Ebene):** Server startet mit `garth-ng 1.1.0` aus frischem `.venv`, alle 39 Tools (abzüglich dokumentierter Drops) liefern bei gültigem Token echte Daten, Token-Refresh läuft ohne SSO über `refresh_token()`, Test-Suite grün mit Mock-Client, Coverage > 80 % auf der Tool-Schicht.
+**Zielzustand (Definition of Done auf Konzept-Ebene):** Server startet mit `garth-ng 1.1.0` aus frischem `.venv`, alle 40 Tools (abzüglich dokumentierter Drops) liefern bei gültigem Token echte Daten, Token-Refresh läuft ohne SSO über `refresh_token()`, Test-Suite grün mit Mock-Client, Coverage > 80 % auf der Tool-Schicht.
 
 ---
 
@@ -99,7 +99,7 @@ flowchart TB
 | `src/mcp_garmin/tools/*.py` (11 Module) | **Kern der Migration.** Jede Legacy-Klasse → garth-ng-Accessor gemäß S1-Mapping. Tool-Signaturen bleiben stabil, wo S1 "1:1" meldet; bei "partiell" bleibt der Name, das Payload folgt S1. |
 | `src/mcp_garmin/serialization.py` | bleibt (camel→snake + `project_sleep_fields`), dient `tools/*` und Tests. |
 | `src/mcp_garmin/garmin_service.py`, `repositories.py` | **Entfernt** (Legacy-Markup, ungenutzt von `tools/*`, nur selbstgetestet). Entsprechende Tests (`test_service_repo.py`) entfernt. |
-| `tests/*` | Tool-Tests auf Mocked `GarminClient`/`garth.http.Client` umstellen; contract-Test `tests/contract/test_tool_surface.py` ist der Anker für die 39er Tool-Fläche (Sektion 3.3). |
+| `tests/*` | Tool-Tests auf Mocked `GarminClient`/`garth.http.Client` umstellen; contract-Test `tests/contract/test_tool_surface.py` ist der Anker für die 40er Tool-Fläche (Sektion 3.3). |
 | `pyproject.toml` | `garth-ng>=1.1.0,<2.0`; `requires-python` → `>=3.10` (garth-ng-Requirement); `mcp` als Dependency explizit aufnehmen (heute implizit via `mcp.server`-Import in `server.py` — **Bug auf main, wird mitfixt**). |
 | `__init__.py`, `__main__.py`, `util.py` | unverändert / trivial. |
 
@@ -159,7 +159,7 @@ Mapping-Prinzipien (Details werden von S1 als Tabelle `spike-api-mapping.md` fix
 3. **Drop:** wo beides live leer/fehlend ist → Tool bleibt registriert, liefert `[]`/`{}` + log-Warnung, **oder** wird entfernt (Entscheidung S2 priorisiert nach Nutzwert; Standard-Vorschlag: entfernen, da ein leeres Tool den LLM-Client verwirrt).
 4. **Payload-Form:** snake_case, ISO-8601-Timestamps, Gewicht in Gramm — unverändert gegenüber main (contract-Test).
 
-### 3.3 Tool-Fläche (39 Tools) — Drops & Remaps
+### 3.3 Tool-Fläche (40 Tools) — Drops & Remaps
 
 Bekannte Drops/Kandidaten (final nur nach S1+S2; hier die Vorphauswertung aus Code-Analyse):
 
@@ -218,7 +218,7 @@ Exit 0 = Token in `~/.garth/oauth2_token.json` + Verifizierung ok; Exit 1 sonst.
 
 ## 5. Cross-cutting
 
-- **DI:** `GarminClient(garth_client=...)` für Test-Injektion; `tools/*` bleiben Singleton-basiert (Process-Local, identisch zu heute) — DI-Punkt ist der `GarminClient`-Konstruktor, nicht die Tool-Ebene (KISS: 39 Tools × Injektion wäre Rauschen).
+- **DI:** `GarminClient(garth_client=...)` für Test-Injektion; `tools/*` bleiben Singleton-basiert (Process-Local, identisch zu heute) — DI-Punkt ist der `GarminClient`-Konstruktor, nicht die Tool-Ebene (KISS: 40 Tools × Injektion wäre Rauschen).
 - **Error-Handling:** ein Eintrag (Sektion 3.1): `GarthException` → `errors.from_garmin()`:
   - `AuthenticationError` / "OAuth2 token" / `refresh_expired` → `TokenError("... run mcp-garmin-login")`
   - `RateLimitError` (429/`Too Many Requests`) → `ToolError("rate-limited; retry later")`
@@ -271,7 +271,7 @@ flowchart LR
   - Jedes Tool: ein Test pro Verhalten (happy path, leer (`None`/`[]`), Error-Path via `GarthException` → `TokenError`).
   - `GarminClient`: `get_client()` mit/ohne `GARTH_HOME`-Token, `refresh()`-Aufruf bei expired Token, `from_garmin`-Mapping pro `GarthException`-Subklasse.
   - `login.py`: SSO-Flow mit Mocked `client.login` (inkl. MFA-Prompt-Pfad).
-  - Contract-Test `test_tool_surface.py`: exakte 39er Tool-Liste + Signatur-Pinning (nach S2-Final-Liste aktualisiert).
+  - Contract-Test `test_tool_surface.py`: exakte 40er Tool-Liste + Signatur-Pinning (nach S2-Final-Liste aktualisiert).
   - `serialization`: camel→snake, `project_sleep_fields` (unverändert).
 - **Integration (echter Client, echter Token — manuell/getagged `@pytest.mark.live`):**
   - `mcp-garmin-login` → Token-Datei existiert, `0600`.
@@ -290,7 +290,7 @@ flowchart LR
 
 | ID | Unknown | Spike-Card | Owner |
 |---|---|---|---|
-| U1 | Exakte garth-ng-Accessor/Endpoint-Mapping pro Tool inkl. Live-Payload-Shape (Feldnamen, Units) für alle 39 Tools; welche der "drop-Kandidaten" (Sektion 3.3) live Daten liefern und welche tatsächlich drop sind. | **S1 = t_7756ff1b** (läuft) — liefert `docs/architecture/garth-ng-migration/spike-api-mapping.md` | sw-architect |
+| U1 | Exakte garth-ng-Accessor/Endpoint-Mapping pro Tool inkl. Live-Payload-Shape (Feldnamen, Units) für alle 40 Tools; welche der "drop-Kandidaten" (Sektion 3.3) live Daten liefern und welche tatsächlich drop sind. | **S1 = t_7756ff1b** (läuft) — liefert `docs/architecture/garth-ng-migration/spike-api-mapping.md` | sw-architect |
 | U2 | Basis-Entscheidung (main vs. `feature/garth-ng-compat` — hier: compat-Branch, da 4-File-Diff zu main und sleep/login schon drin; S2 bestätigt), Drop-Priorisierung nach Nutzwert, Hermes-MCP-Registrierungs-Constraint (dürfen Tool-Namen/Anzahl sich ändern?), README/Docs-Sync. | **S2 = t_d1a88188** (wartet auf S1) — liefert `docs/architecture/garth-ng-migration/spike-scope.md` | sw-projectmanager |
 
 ### Risiken (mit Mitigations)

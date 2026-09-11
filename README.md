@@ -78,7 +78,6 @@ The project follows a layered architecture:
 - Activity tools: activities list, details, map
 - Steps tools: daily/weekly steps, daily summary
 - Hydration tools: daily fluid intake and history
-- Device tools: device info and connected devices
 - Nutrition tools: nutrition log and nutrition status
 - Goal tools: steps goal, weight goal, Garmin fitness scores
 - Util tools: user profile and user settings
