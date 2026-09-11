@@ -29,7 +29,7 @@ mcp = MCPServer(
         "All timestamps are ISO 8601 or YYYY-MM-DD date strings. "
         "Weight is in grams (e.g. 95010 = 95.01 kg). Steps are integers. "
         "If a tool returns a ToolError, "
-        "the Garmin token is likely expired — re-run garmin_login.py."
+        "the Garmin token is likely expired — re-run mcp-garmin-login."
     ),
 )
 
