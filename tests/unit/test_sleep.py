@@ -7,16 +7,27 @@ from mcp_garmin.tools.sleep import get_sleep, get_sleep_detail, get_sleep_summar
 
 
 def test_get_sleep():
-    """Sleep data for a day (YYYY-MM-DD)."""
-    fixture = {"sleep_time_seconds": 25200, "calendar_date": "2026-09-01"}
-    mock_client = MagicMock()
-    
-    with patch("garth.data.SleepData.get", return_value=fixture) as mock_get:
-        result = get_sleep(day="2026-09-01")
-    
+    """Sleep data for a day (YYYY-MM-DD) -- daily_sleep_dto + movement."""
+    fake_result = MagicMock()
+    dto_fixture = {"sleep_time_seconds": 25200, "calendar_date": "2026-09-01"}
+    fake_result.daily_sleep_dto = MagicMock()
+    fake_result.sleep_movement = []
+
+    with patch("garth.data.SleepData.get", return_value=fake_result) as mock_get:
+        with patch("mcp_garmin.client.asdict", return_value=dto_fixture):
+            result = get_sleep(day="2026-09-01")
+
     mock_get.assert_called_once()
     assert mock_get.call_args.kwargs["day"] == "2026-09-01"
-    assert result == fixture
+    assert result == [dict(dto_fixture, sleep_movement=[])]
+
+
+def test_get_sleep_none_returns_empty_list():
+    """SleepData.get returns None -> []."""
+    with patch("garth.data.SleepData.get", return_value=None):
+        result = get_sleep(day="2026-09-01")
+
+    assert result == []
 
 
 def test_get_sleep_detail():
@@ -25,53 +36,44 @@ def test_get_sleep_detail():
         "sleep_start_timestamp_gmt": 1788100000000,
         "sleep_end_timestamp_gmt": 1788190000000,
     }
-    mock_client = MagicMock()
-    
-    with patch("garth.data.DailySleepData.get", return_value=fixture) as mock_get:
-        result = get_sleep_detail(day="2026-09-01")
-    
+
+    with patch("garth.data.DailySleepData.get", return_value=MagicMock()) as mock_get:
+        with patch("mcp_garmin.client.asdict", return_value=fixture):
+            result = get_sleep_detail(day="2026-09-01")
+
     mock_get.assert_called_once()
     assert mock_get.call_args.kwargs["day"] == "2026-09-01"
     assert result == fixture
 
 
-def test_get_sleep_summary_extracts_sleep_fields():
-    """Sleep summary extracts sleep fields."""
-    full = {
-        "calendar_date": "2026-08-31",
-        "total_steps": 20882,
-        "resting_heart_rate": 52,
+def test_get_sleep_detail_none_returns_empty_dict():
+    """DailySleepData.get returns None -> {}."""
+    with patch("garth.data.DailySleepData.get", return_value=None):
+        result = get_sleep_detail(day="2026-09-01")
+
+    assert result == {}
+
+
+def test_get_sleep_summary():
+    """Sleep summary for a day (YYYY-MM-DD) -- scores/SpO2/sleep need via DailySleepData."""
+    fixture = {
         "sleeping_seconds": 25200,
         "sleep_start_timestamp_gmt": 1788100000000,
+        "average_sp_o2_value": 96,
     }
-    mock_client = MagicMock()
-    
-    with patch("garth.data.DailySummary.get", return_value=full) as mock_get:
-        result = get_sleep_summary(day="2026-08-31")
-    
+
+    with patch("garth.data.DailySleepData.get", return_value=MagicMock()) as mock_get:
+        with patch("mcp_garmin.client.asdict", return_value=fixture):
+            result = get_sleep_summary(day="2026-08-31")
+
     mock_get.assert_called_once()
-    assert result == {
-        "sleeping_seconds": 25200,
-        "sleep_start_timestamp_gmt": 1788100000000,
-    }
-
-
-def test_get_sleep_summary_returns_full_when_no_sleep_fields():
-    """Sleep summary returns full when no sleep fields."""
-    full = {"calendar_date": "2026-08-31", "total_steps": 20882}
-    mock_client = MagicMock()
-    
-    with patch("garth.data.DailySummary.get", return_value=full):
-        result = get_sleep_summary(day="2026-08-31")
-    
-    assert result == full
+    assert mock_get.call_args.kwargs["day"] == "2026-08-31"
+    assert result == fixture
 
 
 def test_get_sleep_summary_none():
     """Sleep summary handles None."""
-    mock_client = MagicMock()
-    
-    with patch("garth.data.DailySummary.get", return_value=None):
+    with patch("garth.data.DailySleepData.get", return_value=None):
         result = get_sleep_summary(day="2026-08-31")
-    
+
     assert result == {}
