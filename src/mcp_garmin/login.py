@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-# Garmin login for mcp-garmin (garth 0.8.0).
+# Garmin login for mcp-garmin (garth-ng 1.1.0).
 # Sets GARTH_HOME so garth auto-persists both oauth1_token.json and
 # oauth2_token.json under ~/.garth/. The MCP server uses the same GARTH_HOME
 # to auto-resume the session.
@@ -13,10 +13,14 @@ def main() -> int:
     # knows where to load/dump tokens.
     os.environ["GARTH_HOME"] = os.path.expanduser("~/.garth")
     import garth
-
-    email = "garmin.com.ploy864@passmail.net"
+    
+    email = os.environ.get("GARMIN_EMAIL") or input("Garmin email: ")
     password = getpass.getpass("Garmin password: ")
     garth.login(email, password)  # auto-dumps oauth1 + oauth2 to GARTH_HOME
+    
+    # Secure token permissions after login
+    from mcp_garmin.client import _secure_token_perms
+    _secure_token_perms()
 
     try:
         profile = garth.UserProfile.get()
