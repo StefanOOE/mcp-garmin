@@ -20,7 +20,7 @@ def test_get_daily_hydration(monkeypatch):
         "goal_intake": 3000,
     }
     _patch_client(monkeypatch, MagicMock())
-    with patch("garth.DailyHydration.all_data", return_value=fixture) as mock_all:
+    with patch("garth.data.DailyHydration.get", return_value=fixture) as mock_all:
         result = hydration_mod.get_daily_hydration(day="2026-09-01")
     mock_all.assert_called_once()
     assert mock_all.call_args.kwargs["day"] == "2026-09-01"
