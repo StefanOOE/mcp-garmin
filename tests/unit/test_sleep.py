@@ -1,46 +1,42 @@
-"""Tests for mcp_garmin.sleep."""
-
+"""Unit tests for sleep tools."""
 from __future__ import annotations
 
 from unittest.mock import MagicMock, patch
 
-
-def _patch_client(monkeypatch, mock_client):
-    import mcp_garmin.sleep as sleep
-
-    monkeypatch.setattr(sleep, "get_client", lambda: mock_client)
+from mcp_garmin.tools.sleep import get_sleep, get_sleep_detail, get_sleep_summary
 
 
-def test_get_sleep(monkeypatch):
-    import mcp_garmin.sleep as sleep_mod
-
+def test_get_sleep():
+    """Sleep data for a day (YYYY-MM-DD)."""
     fixture = {"sleep_time_seconds": 25200, "calendar_date": "2026-09-01"}
-    _patch_client(monkeypatch, MagicMock())
-    with patch("garth.SleepData.get", return_value=fixture) as mock_get:
-        result = sleep_mod.get_sleep(day="2026-09-01")
+    mock_client = MagicMock()
+    
+    with patch("garth.data.SleepData.get", return_value=fixture) as mock_get:
+        result = get_sleep(day="2026-09-01")
+    
     mock_get.assert_called_once()
     assert mock_get.call_args.kwargs["day"] == "2026-09-01"
     assert result == fixture
 
 
-def test_get_sleep_detail(monkeypatch):
-    import mcp_garmin.sleep as sleep_mod
-
+def test_get_sleep_detail():
+    """Detailed sleep data for a day (YYYY-MM-DD)."""
     fixture = {
         "sleep_start_timestamp_gmt": 1788100000000,
         "sleep_end_timestamp_gmt": 1788190000000,
     }
-    _patch_client(monkeypatch, MagicMock())
+    mock_client = MagicMock()
+    
     with patch("garth.data.DailySleepData.get", return_value=fixture) as mock_get:
-        result = sleep_mod.get_sleep_detail(day="2026-09-01")
+        result = get_sleep_detail(day="2026-09-01")
+    
     mock_get.assert_called_once()
     assert mock_get.call_args.kwargs["day"] == "2026-09-01"
     assert result == fixture
 
 
-def test_get_sleep_summary_extracts_sleep_fields(monkeypatch):
-    import mcp_garmin.sleep as sleep_mod
-
+def test_get_sleep_summary_extracts_sleep_fields():
+    """Sleep summary extracts sleep fields."""
     full = {
         "calendar_date": "2026-08-31",
         "total_steps": 20882,
@@ -48,9 +44,11 @@ def test_get_sleep_summary_extracts_sleep_fields(monkeypatch):
         "sleeping_seconds": 25200,
         "sleep_start_timestamp_gmt": 1788100000000,
     }
-    _patch_client(monkeypatch, MagicMock())
+    mock_client = MagicMock()
+    
     with patch("garth.data.DailySummary.get", return_value=full) as mock_get:
-        result = sleep_mod.get_sleep_summary(day="2026-08-31")
+        result = get_sleep_summary(day="2026-08-31")
+    
     mock_get.assert_called_once()
     assert result == {
         "sleeping_seconds": 25200,
@@ -58,20 +56,22 @@ def test_get_sleep_summary_extracts_sleep_fields(monkeypatch):
     }
 
 
-def test_get_sleep_summary_returns_full_when_no_sleep_fields(monkeypatch):
-    import mcp_garmin.sleep as sleep_mod
-
+def test_get_sleep_summary_returns_full_when_no_sleep_fields():
+    """Sleep summary returns full when no sleep fields."""
     full = {"calendar_date": "2026-08-31", "total_steps": 20882}
-    _patch_client(monkeypatch, MagicMock())
+    mock_client = MagicMock()
+    
     with patch("garth.data.DailySummary.get", return_value=full):
-        result = sleep_mod.get_sleep_summary(day="2026-08-31")
+        result = get_sleep_summary(day="2026-08-31")
+    
     assert result == full
 
 
-def test_get_sleep_summary_none(monkeypatch):
-    import mcp_garmin.sleep as sleep_mod
-
-    _patch_client(monkeypatch, MagicMock())
+def test_get_sleep_summary_none():
+    """Sleep summary handles None."""
+    mock_client = MagicMock()
+    
     with patch("garth.data.DailySummary.get", return_value=None):
-        result = sleep_mod.get_sleep_summary(day="2026-08-31")
+        result = get_sleep_summary(day="2026-08-31")
+    
     assert result == {}
