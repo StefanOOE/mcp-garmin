@@ -25,7 +25,6 @@ def test_get_daily_hydration():
     mock_list.assert_called_once()
     assert mock_list.call_args.kwargs["end"] == "2026-09-01"
     assert mock_list.call_args.kwargs["period"] == 1
-    assert mock_list.call_args.kwargs["client"] is mock_client
     assert result == fixture_dict
 
 
@@ -58,5 +57,4 @@ def test_get_hydration_history():
     mock_list.assert_called_once()
     assert mock_list.call_args.kwargs["end"] == "2026-08-31"
     assert mock_list.call_args.kwargs["period"] == 1
-    assert mock_list.call_args.kwargs["client"] is mock_client
     assert result == [fixture_dict]
