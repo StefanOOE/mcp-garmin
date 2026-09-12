@@ -13,7 +13,6 @@ from .tools.stress import *
 from .tools.steps import *
 from .tools.hydration import *
 from .tools.activity import *
-from .tools.devices import *
 from .tools.nutrition import *
 from .tools.goals import *
 from .tools.util import *
