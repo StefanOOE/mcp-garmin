@@ -1,4 +1,10 @@
-"""Thin wrapper for steps tools."""
+"""Thin wrapper for steps tools.
+
+garth-ng 1.1.0 target mapping (S1 spike-api-mapping.md \u00a71.9):
+- get_daily_steps: no garth.data accessor -> garth.stats.DailySteps.list(end=day, days=1)[0].
+- get_weekly_steps: garth.stats.WeeklySteps.list(end, days).
+- get_daily_summary / get_daily_summary_history: unchanged (garth.data.DailySummary, 1:1).
+"""
 
 from __future__ import annotations
 
@@ -28,21 +34,21 @@ def _handle_garmin_error(func):
 @_handle_garmin_error
 def get_daily_steps(day: str | None = None) -> dict:
     """Daily steps data for a day (YYYY-MM-DD)."""
-    from garth.data import StepsData
+    from garth.stats import DailySteps
 
     client = get_client()
-    result = StepsData.get(day=day, client=client)
-    return _to_dict(result)
+    result = DailySteps.list(end=day, period=1, client=client)
+    return _to_dict(result[0]) if result else {}
 
 
 @register
 @_handle_garmin_error
-def get_weekly_steps(start_date: str | None = None) -> list[dict]:
+def get_weekly_steps(end: str | None = None, period: int = 1) -> list[dict]:
     """Weekly steps data starting from a date (YYYY-MM-DD)."""
-    from garth.data import WeeklyStepsData
+    from garth.stats import WeeklySteps
 
     client = get_client()
-    result = WeeklyStepsData.get(start_date=start_date, client=client)
+    result = WeeklySteps.list(end=end, period=period, client=client)
     return [_to_dict(entry) for entry in result]
 
 
