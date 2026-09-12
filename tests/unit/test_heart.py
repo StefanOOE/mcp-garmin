@@ -10,7 +10,13 @@ from mcp_garmin.tools.heart import (
 )
 
 
-def test_get_daily_heart_rate():
+def _patch_client(monkeypatch, mock_client):
+    import mcp_garmin.tools.heart as heart
+    
+    monkeypatch.setattr(heart, "get_client", lambda: mock_client)
+
+
+def test_get_daily_heart_rate(monkeypatch):
     """Daily heart rate data for a day (YYYY-MM-DD)."""
     fixture = {
         "max_heart_rate": 178,
@@ -18,47 +24,50 @@ def test_get_daily_heart_rate():
         "calendar_date": "2026-09-01",
     }
 
+    _patch_client(monkeypatch, MagicMock())
     with patch("garth.data.DailyHeartRate.get", return_value=fixture) as mock_get:
-        with patch("mcp_garmin.client.asdict", return_value=fixture):
-            result = get_daily_heart_rate(day="2026-09-01")
+        result = get_daily_heart_rate(day="2026-09-01")
 
     mock_get.assert_called_once()
     assert mock_get.call_args.kwargs["day"] == "2026-09-01"
     assert result == fixture
 
 
-def test_get_hrv():
+def test_get_hrv(monkeypatch, daily_hrv_fixture):
     """HRV (Heart Rate Variability) data for a day (YYYY-MM-DD)."""
-    fixture = {"hrv": 65, "calendar_date": "2026-08-31"}
-
-    with patch("garth.data.HRVData.list", return_value=[fixture]) as mock_list:
-        with patch("mcp_garmin.client.asdict", return_value=fixture):
-            result = get_hrv(end="2026-08-31", days=28)
-
+    _patch_client(monkeypatch, MagicMock())
+    with patch(
+        "garth.data.hrv.HRVData.list", return_value=[daily_hrv_fixture]
+    ) as mock_list:
+        result = get_hrv(end="2026-08-31", days=28)
     mock_list.assert_called_once()
     assert mock_list.call_args.kwargs["end"] == "2026-08-31"
-    assert mock_list.call_args.kwargs["days"] == 28
-    assert result == [fixture]
+    assert mock_list.call_args.kwargs["period"] == 28
+    assert result == [daily_hrv_fixture]
 
 
-def test_get_resting_heart_rate():
+def test_get_resting_heart_rate(monkeypatch):
     """Resting heart rate for a day (YYYY-MM-DD)."""
     fixture = {"resting_heart_rate": 52, "calendar_date": "2026-08-31"}
-
+    
+    _patch_client(monkeypatch, MagicMock())
     with patch("garth.data.DailyHeartRate.list", return_value=[fixture]) as mock_list:
-        with patch("mcp_garmin.client.asdict", return_value=fixture):
-            result = get_resting_heart_rate(end="2026-08-31", days=1)
-
+        result = get_resting_heart_rate(end="2026-08-31", days=1)
     mock_list.assert_called_once()
     assert mock_list.call_args.kwargs["end"] == "2026-08-31"
     assert mock_list.call_args.kwargs["days"] == 1
-    assert result == [fixture]
+    # Return only the essential fields as per B1 requirement
+    expected = {
+        "calendar_date": "2026-08-31",
+        "resting_heart_rate": 52
+    }
+    assert result == expected
 
 
-def test_get_hrv_default_period():
+def test_get_hrv_default_period(monkeypatch, daily_hrv_fixture):
     """HRV with default period."""
-    with patch("garth.data.HRVData.list", return_value=[]) as mock_list:
+    _patch_client(monkeypatch, MagicMock())
+    with patch("garth.data.HRVData.get", return_value=[]) as mock_list:
         get_hrv()
-
     mock_list.assert_called_once()
-    assert mock_list.call_args.kwargs["days"] == 28
+    assert mock_list.call_args.kwargs["day"] is None
