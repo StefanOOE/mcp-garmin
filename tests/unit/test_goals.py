@@ -65,26 +65,35 @@ def test_get_weight_goal_none(monkeypatch):
 
 
 def test_get_garmin_scores(monkeypatch):
-    """Garmin fitness scores via GarminScoresData accessor."""
-    expected = {"vo_2_max": 45.2, "endurance_score": 8.5}
+    """Garmin fitness scores via connectapi endpoint fallback."""
+    expected = {"hill_score": 85, "endurance_score": 75}
     mock_client = MagicMock()
     _patch_client(monkeypatch, mock_client)
-
-    with patch(
-        "garth.data.GarminScoresData.get", return_value=MagicMock()
-    ) as mock_get:
-        with patch("mcp_garmin.tools.goals._to_dict", return_value=expected):
-            result = get_garmin_scores(day="2026-09-01")
-
-    mock_get.assert_called_once_with(day="2026-09-01", client=mock_client)
-    assert result == expected
+    
+    # Mock the two connectapi calls
+    with patch.object(mock_client, "connectapi") as mock_connectapi:
+        # First call for hillscore
+        mock_connectapi.side_effect = [
+            {"hillscore": 85},
+            {"endurancescore": 75}
+        ]
+        
+        result = get_garmin_scores(day="2026-09-01")
+        
+        # Verify both calls were made
+        assert mock_connectapi.call_count == 2
+        mock_connectapi.assert_any_call("/metrics-service/metrics/hillscore")
+        mock_connectapi.assert_any_call("/metrics-service/metrics/endurancescore")
+        assert result == expected
 
 
 def test_get_garmin_scores_none(monkeypatch):
     """Garmin fitness scores handles None return (no Hill/Endurance data)."""
     mock_client = MagicMock()
     _patch_client(monkeypatch, mock_client)
-
-    with patch("garth.data.GarminScoresData.get", return_value=None):
+    
+    # Mock the connectapi calls to return None values
+    with patch.object(mock_client, "connectapi") as mock_connectapi:
+        mock_connectapi.return_value = None
         result = get_garmin_scores(day="2026-09-01")
-    assert result == {}
+        assert result == {}

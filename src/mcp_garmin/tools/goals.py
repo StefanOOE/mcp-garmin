@@ -66,19 +66,27 @@ def get_weight_goal(day: str | None = None) -> dict:
 @register
 @_handle_garmin_error
 def get_garmin_scores(day: str | None = None) -> dict:
-    """Garmin fitness scores (Hill Score + Endurance Score).
-
-    Shape-Drift fix: hill_score/hill_endurance_score may be None for accounts
-    without that data; GarminScoresData is patched to accept None (default 0)
-    so the accessor doesn't raise a pydantic validation error.
-    """
-    from garth.data import GarminScoresData
-
-    # Patch once: allow None for accounts without Hill/Endurance data.
-    for _field in ("hill_score", "hill_endurance_score"):
-        if _field in GarminScoresData.__dataclass_fields__:
-            GarminScoresData.__dataclass_fields__[_field].default = 0
-
+    """Garmin fitness scores."""
+    # Use connectapi endpoints directly since GarminScores class doesn't exist in garth-ng 1.1.0
     client = get_client()
-    result = GarminScoresData.get(day=day, client=client)
-    return _to_dict(result) if result else {}
+    
+    # Get hill score
+    hillscore_data = client.connectapi("/metrics-service/metrics/hillscore")
+    hillscore = None
+    if isinstance(hillscore_data, dict) and hillscore_data:
+        hillscore = hillscore_data.get("hillscore")
+    
+    # Get endurance score  
+    endurancescore_data = client.connectapi("/metrics-service/metrics/endurancescore")
+    endurancescore = None
+    if isinstance(endurancescore_data, dict) and endurancescore_data:
+        endurancescore = endurancescore_data.get("endurancescore")
+    
+    # Merge results and convert to snake_case
+    result = {}
+    if hillscore is not None:
+        result["hill_score"] = hillscore
+    if endurancescore is not None:
+        result["endurance_score"] = endurancescore
+        
+    return result
