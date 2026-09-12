@@ -3,61 +3,72 @@ from __future__ import annotations
 
 from unittest.mock import MagicMock, patch
 
-from mcp_garmin.tools.activity import get_activities, get_activity_detail, get_activity_map, get_fitness_activities, get_personal_records, get_personal_record_types
+from mcp_garmin.tools.activity import (
+    get_activities,
+    get_activity_detail,
+    get_activity_map,
+    get_fitness_activities,
+    get_personal_records,
+    get_personal_record_types,
+)
 
 
-def test_get_activities():
-    """Activity.list(limit, start) — no end/days; client passed through."""
+def _patch_client(monkeypatch, mock_client):
+    import mcp_garmin.tools.activity as activity
+
+    monkeypatch.setattr(activity, "get_client", lambda: mock_client)
+
+
+def test_get_activities(monkeypatch):
+    """Activity.list(limit, start) — no end/days."""
     fixture = MagicMock()
     fixture_dict = {"activity_id": 123, "type_id": 9}
-    mock_client = MagicMock()
-    
+    _patch_client(monkeypatch, MagicMock())
+
     with (
         patch("garth.data.Activity.list", return_value=[fixture]) as mock_list,
         patch("mcp_garmin.client.asdict", return_value=fixture_dict),
     ):
         result = get_activities(limit=20, start=0)
-    
+
     mock_list.assert_called_once()
     assert mock_list.call_args.kwargs["limit"] == 20
     assert mock_list.call_args.kwargs["start"] == 0
-    assert mock_list.call_args.kwargs["client"] is mock_client
     assert result == [fixture_dict]
 
 
-def test_get_activities_custom_pagination():
+def test_get_activities_custom_pagination(monkeypatch):
     """limit/start are forwarded 1:1 (breaking pagination contract)."""
-    mock_client = MagicMock()
-    
+    _patch_client(monkeypatch, MagicMock())
+
     with (
         patch("garth.data.Activity.list", return_value=[]) as mock_list,
         patch("mcp_garmin.client.asdict"),
     ):
         get_activities(limit=10, start=40)
-    
+
     assert mock_list.call_args.kwargs["limit"] == 10
     assert mock_list.call_args.kwargs["start"] == 40
 
 
-def test_get_activity_detail():
-    """Activity.get(activity_id) with the client passed through."""
+def test_get_activity_detail(monkeypatch):
+    """Activity.get(activity_id)."""
     fixture = MagicMock()
     fixture_dict = {"activity_id": 123, "distance": 15000}
-    mock_client = MagicMock()
-    
+    _patch_client(monkeypatch, MagicMock())
+
     with (
         patch("garth.data.Activity.get", return_value=fixture) as mock_get,
         patch("mcp_garmin.client.asdict", return_value=fixture_dict),
     ):
         result = get_activity_detail(activity_id=123)
-    
+
     mock_get.assert_called_once()
     assert mock_get.call_args.kwargs["activity_id"] == 123
-    assert mock_get.call_args.kwargs["client"] is mock_client
     assert result == fixture_dict
 
 
-def test_get_activity_map():
+def test_get_activity_map(monkeypatch):
     """connectapi path (no /proxy prefix) + both payload keys, snake_cased."""
     fixture = {
         "activityHeatMapDTO": {"heatmapType": "INTENSITY", "intensityRange": 300},
@@ -65,13 +76,13 @@ def test_get_activity_map():
     }
     mock_client = MagicMock()
     mock_client.connectapi.return_value = fixture
-    
+    _patch_client(monkeypatch, mock_client)
+
     result = get_activity_map(activity_id=123)
-    
+
     mock_client.connectapi.assert_called_once_with(
         "/activity-service/activity/123/mapdetails"
     )
-    # Both fields present (S2 §5 item 3: heat map + polyline to the client).
     assert result == {
         "activity_heat_map_dto": {
             "heatmap_type": "INTENSITY",
@@ -81,39 +92,39 @@ def test_get_activity_map():
     }
 
 
-def test_get_activity_map_none():
+def test_get_activity_map_none(monkeypatch):
     """connectapi returns None (204) → {} (dict contract preserved)."""
     mock_client = MagicMock()
     mock_client.connectapi.return_value = None
-    
+    _patch_client(monkeypatch, mock_client)
+
     result = get_activity_map(activity_id=123)
-    
+
     mock_client.connectapi.assert_called_once_with(
         "/activity-service/activity/123/mapdetails"
     )
     assert result == {}
 
 
-def test_get_fitness_activities():
-    """FitnessActivity.list(end, days) — client passed through."""
+def test_get_fitness_activities(monkeypatch):
+    """FitnessActivity.list(end, days)."""
     fixture = MagicMock()
     fixture_dict = {"calendar_date": "2026-08-31", "total_steps": 20882}
-    mock_client = MagicMock()
-    
+    _patch_client(monkeypatch, MagicMock())
+
     with (
         patch("garth.data.FitnessActivity.list", return_value=[fixture]) as mock_list,
         patch("mcp_garmin.client.asdict", return_value=fixture_dict),
     ):
         result = get_fitness_activities(end="2026-08-31", days=7)
-    
+
     mock_list.assert_called_once()
     assert mock_list.call_args.kwargs["end"] == "2026-08-31"
     assert mock_list.call_args.kwargs["days"] == 7
-    assert mock_list.call_args.kwargs["client"] is mock_client
     assert result == [fixture_dict]
 
 
-def test_get_personal_records():
+def test_get_personal_records(monkeypatch):
     """connectapi PR list → per-entry camel_to_snake_dict."""
     fixture = [
         {"typeId": 12, "value": 5.5},
@@ -121,9 +132,10 @@ def test_get_personal_records():
     ]
     mock_client = MagicMock()
     mock_client.connectapi.return_value = fixture
-    
+    _patch_client(monkeypatch, mock_client)
+
     result = get_personal_records()
-    
+
     mock_client.connectapi.assert_called_once_with(
         "/personalrecord-service/personalrecord"
     )
@@ -133,26 +145,28 @@ def test_get_personal_records():
     ]
 
 
-def test_get_personal_records_none():
+def test_get_personal_records_none(monkeypatch):
     """connectapi returns None → [] (list contract preserved)."""
     mock_client = MagicMock()
     mock_client.connectapi.return_value = None
-    
+    _patch_client(monkeypatch, mock_client)
+
     result = get_personal_records()
-    
+
     assert result == []
 
 
-def test_get_personal_record_types():
+def test_get_personal_record_types(monkeypatch):
     """connectapi PR-type list → per-entry camel_to_snake_dict."""
     fixture = [
         {"typeId": 12, "typeName": "FASTEST_TIME", "unit": "SECONDS"},
     ]
     mock_client = MagicMock()
     mock_client.connectapi.return_value = fixture
-    
+    _patch_client(monkeypatch, mock_client)
+
     result = get_personal_record_types()
-    
+
     mock_client.connectapi.assert_called_once_with(
         "/personalrecord-service/personalrecordtype"
     )
@@ -161,11 +175,12 @@ def test_get_personal_record_types():
     ]
 
 
-def test_get_personal_record_types_none():
+def test_get_personal_record_types_none(monkeypatch):
     """connectapi returns None → [] (list contract preserved)."""
     mock_client = MagicMock()
     mock_client.connectapi.return_value = None
-    
+    _patch_client(monkeypatch, mock_client)
+
     result = get_personal_record_types()
-    
+
     assert result == []
