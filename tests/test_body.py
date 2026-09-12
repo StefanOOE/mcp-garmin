@@ -114,5 +114,5 @@ def test_get_body_weight_raises_tool_error(monkeypatch):
     with patch(
         "garth.data.WeightData.get", side_effect=GarthException("token expired")
     ):
-        with pytest.raises(ToolError, match="garmin_login.py"):
+        with pytest.raises(ToolError, match="mcp-garmin-login"):
             body.get_body_weight(day="2026-09-01")

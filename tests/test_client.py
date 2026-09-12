@@ -6,10 +6,16 @@ import unittest.mock
 
 import pytest
 from garth import http as garth_http
-from garth.exc import GarthException
+from garth.exc import AuthenticationError, GarthException
 
 from mcp_garmin import client
-from mcp_garmin.client import ToolError, _handle_garmin_error, _to_dict, get_client
+from mcp_garmin.client import (
+    TokenError,
+    ToolError,
+    _handle_garmin_error,
+    _to_dict,
+    get_client,
+)
 
 # ---------------------------------------------------------------------------
 # get_client()
@@ -82,20 +88,43 @@ def test_to_dict_asdict():
 
 
 def test_handle_garmin_error_token_hint():
-    """GarthException mit 'token' im Text → ToolError mit garmin_login.py-Hint."""
+    """Token-Fehler (AuthenticationError) → TokenError mit mcp-garmin-login-Hint.
+
+    Konzept §5: Token-Probleme werden über die Exception-Typen
+    (``AuthenticationError``/``MFARequiredError``) bzw. die Token-Pfad-Meldungen
+    von garth-ng erkannt — nicht über den bloßen Substring 'token'.
+    """
 
     def broken() -> None:
-        raise GarthException("Invalid token for user")
+        raise AuthenticationError("Invalid token for user")
 
     wrapped = _handle_garmin_error(broken)
-    with pytest.raises(ToolError) as excinfo:
+    with pytest.raises(TokenError) as excinfo:
         wrapped()
-    assert "garmin_login.py" in str(excinfo.value)
+    assert "mcp-garmin-login" in str(excinfo.value)
     assert "Invalid token for user" in str(excinfo.value)
 
 
+def test_handle_garmin_error_token_message():
+    """GarthException mit garth-ng-Token-Pfad-Text → TokenError mit Hint.
+
+    ``Client.request(api=True)``/``refresh_token()``/``load()`` werfen diese
+    Meldungen als *plain* ``GarthException`` — sie müssen als Token-Fehler
+    erkannt werden (konzeptkonforme Marker-Erkennung).
+    """
+
+    def broken() -> None:
+        raise GarthException("No valid OAuth2 token. Please login.")
+
+    wrapped = _handle_garmin_error(broken)
+    with pytest.raises(TokenError) as excinfo:
+        wrapped()
+    assert "mcp-garmin-login" in str(excinfo.value)
+    assert "No valid OAuth2 token" in str(excinfo.value)
+
+
 def test_handle_garmin_error_non_token():
-    """GarthException ohne 'token' → ToolError ohne garmin_login.py-Hint."""
+    """GarthException ohne Token-Marker → ToolError (kein mcp-garmin-login-Hint)."""
 
     def broken() -> None:
         raise GarthException("Connection timeout")
@@ -103,7 +132,8 @@ def test_handle_garmin_error_non_token():
     wrapped = _handle_garmin_error(broken)
     with pytest.raises(ToolError) as excinfo:
         wrapped()
-    assert "garmin_login.py" not in str(excinfo.value)
+    assert not isinstance(excinfo.value, TokenError)
+    assert "mcp-garmin-login" not in str(excinfo.value)
     assert "Connection timeout" in str(excinfo.value)
 
 
