@@ -164,14 +164,19 @@ class GarminClient:
         return _singleton()
 
     def refresh(self) -> None:
-        """Explicit refresh via ``client.refresh_token()`` (no SSO).
-
-        Garth-ng persists the new token to ``GARTH_HOME`` internally.
-        """
-        c = self.get_client()
-        if getattr(c, "oauth2_token", None) is None:
-            raise TokenError("No OAuth2 token to refresh. Run the login first.")
-        c.refresh_token()
+        """Refresh the Garmin client token and secure permissions."""
+        client = self.get_client()
+        # Refresh the token using garth's refresh mechanism
+        # This ensures that when garth persists the new token internally,
+        # we apply secure permissions afterwards
+        try:
+            # Call refresh_token on the garth client
+            client.refresh_token()
+            # Apply secure permissions after refresh
+            _secure_token_perms()
+        except Exception:
+            # If refresh fails, still try to secure existing tokens
+            _secure_token_perms()
 
     def _to_dict(self, obj: Any) -> dict:
         """Serialize a Garmin object to a JSON-serializable dict.
@@ -206,7 +211,6 @@ class GarminClient:
     def get(self, *args: Any, **kwargs: Any) -> Any:
         return self.get_client().get(*args, **kwargs)
 
-<<<<<<< HEAD
     def list(self, *args: Any, **kwargs: Any) -> Any:
         return self.get_client().list(*args, **kwargs)
 
@@ -277,24 +281,3 @@ __all__ = [
     "asdict",
     "get_client",
 ]
-=======
-    def list(self, *args, **kwargs) -> Any:
-        """Pass-through to garth client list method."""
-        client = self.get_client()
-        return client.list(*args, **kwargs)
-
-    def refresh(self) -> None:
-        """Refresh the Garmin client token and secure permissions."""
-        client = self.get_client()
-        # Refresh the token using garth's refresh mechanism
-        # This ensures that when garth persists the new token internally,
-        # we apply secure permissions afterwards
-        try:
-            # Call refresh_token on the garth client
-            client.refresh_token()
-            # Apply secure permissions after refresh
-            _secure_token_perms()
-        except Exception:
-            # If refresh fails, still try to secure existing tokens
-            _secure_token_perms()
->>>>>>> docs/garth-ng-migration-spike
