@@ -39,7 +39,7 @@ def test_get_daily_hydration(monkeypatch):
         patch("garth.DailyHydration.list", return_value=[fixture]) as mock_list,
         patch("mcp_garmin.client.asdict", return_value=fixture_dict),
     ):
-        result = hydration_mod.get_daily_hydration(day="2026-09-01")
+    result = hydration_mod.get_daily_hydration(day="2026-09-01")
     mock_list.assert_called_once()
     assert mock_list.call_args.kwargs["end"] == "2026-09-01"
     assert mock_list.call_args.kwargs["period"] == 1

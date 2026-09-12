@@ -39,10 +39,10 @@ def get_daily_heart_rate(day: str | None = None) -> list[dict]:
 @_handle_garmin_error
 def get_hrv(day: str | None = None) -> list[dict]:
     """HRV (Heart Rate Variability) data for a day (YYYY-MM-DD)."""
-    from garth.data import HrvData
+    from garth.data import HRVData
 
     client = get_client()
-    result = HrvData.get(day=day, client=client)
+    result = HRVData.get(day=day, client=client)
     return [_to_dict(entry) for entry in result]
 
 

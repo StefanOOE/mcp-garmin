@@ -13,10 +13,14 @@ def main() -> int:
     # knows where to load/dump tokens.
     os.environ["GARTH_HOME"] = os.path.expanduser("~/.garth")
     import garth
-
-    email = "garmin.com.ploy864@passmail.net"
+    
+    email = os.environ.get("GARMIN_EMAIL") or input("Garmin email: ")
     password = getpass.getpass("Garmin password: ")
     garth.login(email, password)  # auto-dumps oauth1 + oauth2 to GARTH_HOME
+    
+    # Secure token permissions after login
+    from mcp_garmin.client import _secure_token_perms
+    _secure_token_perms()
 
     try:
         profile = garth.UserProfile.get()

@@ -58,7 +58,7 @@ def test_get_hrv_default_period(monkeypatch, daily_hrv_fixture):
     import mcp_garmin.heart as heart
 
     _patch_client(monkeypatch, MagicMock())
-    with patch("garth.data.hrv.HRVData.list", return_value=[]) as mock_list:
+    with patch("garth.data.HRVData.get", return_value=[]) as mock_list:
         heart.get_hrv()
     mock_list.assert_called_once()
-    assert mock_list.call_args.kwargs["period"] == 28
+    assert mock_list.call_args.kwargs["day"] is None
