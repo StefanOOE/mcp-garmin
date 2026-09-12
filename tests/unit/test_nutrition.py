@@ -2,12 +2,18 @@
 from __future__ import annotations
 
 from datetime import date
-from unittest.mock import MagicMock, patch
+from unittest.mock import MagicMock
 
 from mcp_garmin.tools.nutrition import get_nutrition_log, get_nutrition_status
 
 
-def test_get_nutrition_log():
+def _patch_client(monkeypatch, mock_client):
+    import mcp_garmin.tools.nutrition as nutrition
+
+    monkeypatch.setattr(nutrition, "get_client", lambda: mock_client)
+
+
+def test_get_nutrition_log(monkeypatch):
     """connectapi returns a day-log dict → camelCase is converted to snake_case."""
     fixture = {
         "mealDate": "2026-09-01",
@@ -17,9 +23,10 @@ def test_get_nutrition_log():
     }
     mock_client = MagicMock()
     mock_client.connectapi.return_value = fixture
-    
+    _patch_client(monkeypatch, mock_client)
+
     result = get_nutrition_log(day="2026-09-01")
-    
+
     mock_client.connectapi.assert_called_once_with(
         "/nutrition-service/food/logs/2026-09-01"
     )
@@ -31,42 +38,45 @@ def test_get_nutrition_log():
     }
 
 
-def test_get_nutrition_log_defaults_to_today():
+def test_get_nutrition_log_defaults_to_today(monkeypatch):
     """Ohne day-Parameter → heute (ISO) wird im Pfad verwendet."""
     mock_client = MagicMock()
     mock_client.connectapi.return_value = {"mealDate": date.today().isoformat()}
-    
+    _patch_client(monkeypatch, mock_client)
+
     result = get_nutrition_log()
-    
+
     expected_path = f"/nutrition-service/food/logs/{date.today().isoformat()}"
     mock_client.connectapi.assert_called_once_with(expected_path)
     assert result == {"meal_date": date.today().isoformat()}
 
 
-def test_get_nutrition_log_none():
+def test_get_nutrition_log_none(monkeypatch):
     """connectapi liefert None → {} zurück."""
     mock_client = MagicMock()
     mock_client.connectapi.return_value = None
-    
+    _patch_client(monkeypatch, mock_client)
+
     result = get_nutrition_log(day="2026-09-01")
-    
+
     mock_client.connectapi.assert_called_once_with(
         "/nutrition-service/food/logs/2026-09-01"
     )
     assert result == {}
 
 
-def test_get_nutrition_log_empty_dict():
+def test_get_nutrition_log_empty_dict(monkeypatch):
     """connectapi liefert leeres Dict → {} zurück."""
     mock_client = MagicMock()
     mock_client.connectapi.return_value = {}
-    
+    _patch_client(monkeypatch, mock_client)
+
     result = get_nutrition_log(day="2026-09-01")
-    
+
     assert result == {}
 
 
-def test_get_nutrition_status():
+def test_get_nutrition_status(monkeypatch):
     """connectapi returns the current status dict → snake_case, no day param."""
     fixture = {
         "currentStatus": "MFP_ENABLED",
@@ -75,9 +85,10 @@ def test_get_nutrition_status():
     }
     mock_client = MagicMock()
     mock_client.connectapi.return_value = fixture
-    
+    _patch_client(monkeypatch, mock_client)
+
     result = get_nutrition_status()
-    
+
     # No day parameter — always the current-status endpoint.
     mock_client.connectapi.assert_called_once_with(
         "/nutrition-service/user/nutritionCurrentStatus"
@@ -89,13 +100,14 @@ def test_get_nutrition_status():
     }
 
 
-def test_get_nutrition_status_none():
+def test_get_nutrition_status_none(monkeypatch):
     """connectapi returns None → {} returned."""
     mock_client = MagicMock()
     mock_client.connectapi.return_value = None
-    
+    _patch_client(monkeypatch, mock_client)
+
     result = get_nutrition_status()
-    
+
     mock_client.connectapi.assert_called_once_with(
         "/nutrition-service/user/nutritionCurrentStatus"
     )
