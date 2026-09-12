@@ -36,17 +36,22 @@ def test_get_weight_history():
     assert result == [fixture]
 
 
-def test_get_blood_pressure():
+def test_get_blood_pressure(monkeypatch):
     """Blood pressure reading for a day (YYYY-MM-DD)."""
-    fixture = {"systolic_bp": 120, "diastolic_bp": 80, "calendar_date": "2026-09-01"}
+    fixture = {"systolicBp": 120, "diastolicBp": 80, "calendarDate": "2026-09-01"}
+    expected = {"systolic_bp": 120, "diastolic_bp": 80, "calendar_date": "2026-09-01"}
+    import mcp_garmin.tools.body as body
+
     mock_client = MagicMock()
-    
-    with patch("garth.data.BloodPressure.get", return_value=fixture) as mock_get:
-        result = get_blood_pressure(day="2026-09-01")
-    
-    mock_get.assert_called_once()
-    assert mock_get.call_args.kwargs["day"] == "2026-09-01"
-    assert result == fixture
+    mock_client.connectapi.return_value = fixture
+    monkeypatch.setattr(body, "get_client", lambda: mock_client)
+
+    result = get_blood_pressure(day="2026-09-01")
+
+    mock_client.connectapi.assert_called_once_with(
+        "/bloodpressure-service/bloodpressure/dayview/2026-09-01"
+    )
+    assert result == expected
 
 
 def test_get_body_battery():

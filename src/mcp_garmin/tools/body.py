@@ -49,12 +49,16 @@ def get_weight_history(end: str | None = None, days: int = 7) -> list[dict]:
 @register
 @_handle_garmin_error
 def get_blood_pressure(day: str | None = None) -> dict:
-    """Blood pressure reading for a day (YYYY-MM-DD)."""
-    from garth.data import BloodPressure
+    """Blood pressure reading for a day (YYYY-MM-DD).
+
+    No garth.data accessor exists (S1 spike-api-mapping.md \u00a71.4);
+    endpoint-fallback via client.connectapi().
+    """
+    from ..serialization import camel_to_snake_dict
 
     client = get_client()
-    result = BloodPressure.get(day=day, client=client)
-    return _to_dict(result)
+    raw = client.connectapi(f"/bloodpressure-service/bloodpressure/dayview/{day}")
+    return camel_to_snake_dict(raw) if raw else {}
 
 
 @register
