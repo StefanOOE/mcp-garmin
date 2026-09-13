@@ -7,10 +7,14 @@ Ein dünner MCP-Server-Layer über der [garth-ng](https://pypi.org/project/garth
 ```
 mcp-garmin/
 ├── src/
-│   ├── garmin_client.py   # Garth-Login/Session-Handling + Datenzugriff
-│   ├── mcp_server.py      # MCP-Server-Definition und Tools
-│   ├── main.py             # Einstiegspunkt (startet den Server über stdio)
-│   └── explore_sleep.py    # Standalone-Skript zum manuellen Testen der Garth-Anbindung
+│   ├── server_instance.py  # Erzeugt die geteilte MCPServer-Instanz
+│   ├── mcp_server.py       # Composition Root: verdrahtet Server + Tools
+│   ├── tools/               # Ein Modul pro MCP-Tool
+│   │   ├── ping.py
+│   │   └── sleep.py
+│   ├── garmin_client.py    # Garth-Login/Session-Handling + Datenzugriff
+│   ├── main.py              # Einstiegspunkt (startet den Server über stdio)
+│   └── explore_sleep.py     # Standalone-Skript zum manuellen Testen der Garth-Anbindung
 ├── .env.template            # Vorlage für Zugangsdaten
 ├── .pylintrc
 ├── requirements.txt
