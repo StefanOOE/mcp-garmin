@@ -8,4 +8,4 @@ logging.basicConfig(
     level=config.LOG_LEVEL, format="%(asctime)s - %(levelname)s - %(message)s", force=True
 )
 log = logging.getLogger(__name__)
-log.info("Loaded tools: %s", tools.__all__)
+log.info("MCP server '%s' ready, loaded tool modules: %s", server.name, tools.__all__)
