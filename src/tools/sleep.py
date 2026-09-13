@@ -13,6 +13,20 @@ from server_instance import server
 log = logging.getLogger(__name__)
 
 
+def _local_iso(raw: dict, key: str) -> str:
+    """Convert a Garmin *_timestamp_local epoch-ms field to an ISO string.
+
+    Garmin's API has no version field to detect a renamed/missing key against
+    (see README disclaimer), so this degrades to "unknown" instead of crashing
+    the whole tool if the field is ever absent.
+    """
+    timestamp_ms = raw.get(key)
+    if timestamp_ms is None:
+        return "unknown"
+    local_dt = datetime.fromtimestamp(timestamp_ms / 1000, tz=timezone.utc)
+    return local_dt.replace(tzinfo=None).isoformat()
+
+
 class SleepSummary(BaseModel):
     """Pydantic model representing a sleep summary from Garmin."""
     sleep_start: str = Field(description="ISO 8601 timestamp when sleep started.")
@@ -50,29 +64,26 @@ def get_sleep_summary(
         raw = dataclasses.asdict(sleep_data.daily_sleep_dto)
         log.debug("Raw sleep data: %s", json.dumps(raw, indent=2, default=str))
 
+        overall_score = raw.get("sleep_scores", {}).get("overall", {})
         result = {
-            "sleep_start": datetime.fromtimestamp(
-                raw["sleep_start_timestamp_local"] / 1000, tz=timezone.utc
-                ).replace(tzinfo=None).isoformat(),
-            "sleep_end": datetime.fromtimestamp(
-                raw["sleep_end_timestamp_local"] / 1000, tz=timezone.utc
-                ).replace(tzinfo=None).isoformat(),
-            "average_respiration_value": raw["average_respiration_value"],
-            "lowest_respiration_value": raw["lowest_respiration_value"],
-            "highest_respiration_value": raw["highest_respiration_value"],
-            "overall_sleep_score": raw["sleep_scores"]["overall"]["value"],
-            "awake_count": raw["awake_count"],
-            "sleep_score_insight": raw["sleep_score_insight"],
-            "highest_sp_o2_value": raw["highest_sp_o2_value"],
-            "lowest_sp_o2_value": raw["lowest_sp_o2_value"],
-            "nap_time_minutes": raw["nap_time_seconds"] // 60,
-            "total_sleep_minutes": raw["sleep_time_seconds"] // 60,
-            "deep_sleep_minutes": raw["deep_sleep_seconds"] // 60,
-            "light_sleep_minutes": raw["light_sleep_seconds"] // 60,
-            "rem_sleep_minutes": raw["rem_sleep_seconds"] // 60,
-            "awake_minutes": raw["awake_sleep_seconds"] // 60,
-            "feedback": raw["sleep_score_feedback"],
-            "overall_score_label": raw["sleep_scores"]["overall"]["qualifier_key"]
+            "sleep_start": _local_iso(raw, "sleep_start_timestamp_local"),
+            "sleep_end": _local_iso(raw, "sleep_end_timestamp_local"),
+            "average_respiration_value": raw.get("average_respiration_value", 0.0),
+            "lowest_respiration_value": raw.get("lowest_respiration_value", 0.0),
+            "highest_respiration_value": raw.get("highest_respiration_value", 0.0),
+            "overall_sleep_score": overall_score.get("value", 0),
+            "awake_count": raw.get("awake_count", 0),
+            "sleep_score_insight": raw.get("sleep_score_insight", "UNKNOWN"),
+            "highest_sp_o2_value": raw.get("highest_sp_o2_value"),
+            "lowest_sp_o2_value": raw.get("lowest_sp_o2_value"),
+            "nap_time_minutes": raw.get("nap_time_seconds", 0) // 60,
+            "total_sleep_minutes": raw.get("sleep_time_seconds", 0) // 60,
+            "deep_sleep_minutes": raw.get("deep_sleep_seconds", 0) // 60,
+            "light_sleep_minutes": raw.get("light_sleep_seconds", 0) // 60,
+            "rem_sleep_minutes": raw.get("rem_sleep_seconds", 0) // 60,
+            "awake_minutes": raw.get("awake_sleep_seconds", 0) // 60,
+            "feedback": raw.get("sleep_score_feedback", "UNKNOWN"),
+            "overall_score_label": overall_score.get("qualifier_key", "UNKNOWN"),
         }
         return SleepSummary(**result)
     except GarthException as exc:

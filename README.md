@@ -2,11 +2,14 @@
 
 A thin MCP server layer over the [garth-ng](https://pypi.org/project/garth-ng/) library, exposing your own Garmin Connect data to an LLM via the [Model Context Protocol](https://modelcontextprotocol.io).
 
+> **Disclaimer:** This is an unofficial, personal project, not affiliated with or endorsed by Garmin. It uses `garth-ng`, which talks to undocumented, reverse-engineered Garmin Connect endpoints. Use at your own risk, with your own account and credentials.
+
 ## Project Structure
 
 ```
 mcp-garmin/
 ├── src/
+│   ├── config.py            # Central config: env vars, validated on import
 │   ├── server_instance.py  # Creates the shared MCPServer instance
 │   ├── mcp_server.py       # Composition root: wires up the server + tools
 │   ├── tools/               # One module per MCP tool
@@ -15,7 +18,7 @@ mcp-garmin/
 │   ├── garmin_client.py    # Garth login/session handling + data access
 │   ├── main.py              # Entry point (starts the server over stdio)
 │   └── explore_sleep.py     # Standalone script for manually testing the Garth integration
-├── .env.template            # Template for credentials
+├── .env.template            # Template for credentials and settings
 ├── .pylintrc
 ├── requirements.txt
 ├── LICENSE
@@ -39,7 +42,11 @@ pip install -r requirements.txt
 cp .env.template .env
 ```
 
-Fill in your Garmin Connect credentials in `.env` (`GARMIN_USERNAME`, `GARMIN_PASSWORD`). On first run, this logs in once and saves the session under `~/.garth` — after that, the saved session is reused without logging in again.
+Fill in your Garmin Connect credentials in `.env` (`GARMIN_USERNAME`, `GARMIN_PASSWORD`, both required). On first run, this logs in once and saves the session under `~/.garth` — after that, the saved session is reused without logging in again.
+
+Two optional settings, with sensible defaults if omitted:
+- `LOG_LEVEL` (default `INFO`) — one of `DEBUG`, `INFO`, `WARNING`, `ERROR`, `CRITICAL`
+- `GARTH_SESSION_DIR` (default `~/.garth`) — where the cached session is stored
 
 ## Usage
 
@@ -62,6 +69,8 @@ npx -y @modelcontextprotocol/inspector ./venv/bin/mcp run src/mcp_server.py:serv
 ```
 
 Opens a browser tab with the Inspector UI, where the available tools can be called directly.
+
+> **Known issue:** `mcp dev src/mcp_server.py:server` (the CLI's own dev command) currently fails — it spins up an isolated `uv run --with mcp==<version>` environment that's missing the `cli` extras `mcp run` itself needs. The command above works around this by pointing the Inspector directly at this project's own virtual environment instead.
 
 ## Available Tools
 
