@@ -1,21 +1,21 @@
-# MCP Server mit garth-ng
+# MCP Server for garth-ng
 
-Ein dünner MCP-Server-Layer über der [garth-ng](https://pypi.org/project/garth-ng/)-Library, um eigene Garmin-Connect-Daten einem LLM über das [Model Context Protocol](https://modelcontextprotocol.io) bereitzustellen.
+A thin MCP server layer over the [garth-ng](https://pypi.org/project/garth-ng/) library, exposing your own Garmin Connect data to an LLM via the [Model Context Protocol](https://modelcontextprotocol.io).
 
-## Projektstruktur
+## Project Structure
 
 ```
 mcp-garmin/
 ├── src/
-│   ├── server_instance.py  # Erzeugt die geteilte MCPServer-Instanz
-│   ├── mcp_server.py       # Composition Root: verdrahtet Server + Tools
-│   ├── tools/               # Ein Modul pro MCP-Tool
+│   ├── server_instance.py  # Creates the shared MCPServer instance
+│   ├── mcp_server.py       # Composition root: wires up the server + tools
+│   ├── tools/               # One module per MCP tool
 │   │   ├── ping.py
 │   │   └── sleep.py
-│   ├── garmin_client.py    # Garth-Login/Session-Handling + Datenzugriff
-│   ├── main.py              # Einstiegspunkt (startet den Server über stdio)
-│   └── explore_sleep.py     # Standalone-Skript zum manuellen Testen der Garth-Anbindung
-├── .env.template            # Vorlage für Zugangsdaten
+│   ├── garmin_client.py    # Garth login/session handling + data access
+│   ├── main.py              # Entry point (starts the server over stdio)
+│   └── explore_sleep.py     # Standalone script for manually testing the Garth integration
+├── .env.template            # Template for credentials
 ├── .pylintrc
 ├── requirements.txt
 ├── LICENSE
@@ -25,51 +25,51 @@ mcp-garmin/
 ## Installation
 
 ```bash
-# Virtuelles Environment anlegen und aktivieren
+# Create and activate a virtual environment
 python3 -m venv venv
 source venv/bin/activate
 
-# Abhängigkeiten installieren
+# Install dependencies
 pip install -r requirements.txt
 ```
 
-## Zugangsdaten einrichten
+## Setting Up Credentials
 
 ```bash
 cp .env.template .env
 ```
 
-Trag in `.env` deine Garmin-Connect-Zugangsdaten ein (`GARMIN_USERNAME`, `GARMIN_PASSWORD`). Beim ersten Start wird damit einmalig eingeloggt und die Session unter `~/.garth` gespeichert — danach wird diese gespeicherte Session wiederverwendet, ohne erneuten Login.
+Fill in your Garmin Connect credentials in `.env` (`GARMIN_USERNAME`, `GARMIN_PASSWORD`). On first run, this logs in once and saves the session under `~/.garth` — after that, the saved session is reused without logging in again.
 
-## Nutzung
+## Usage
 
-**MCP-Server starten** (wartet über stdio auf einen Client, z.B. Claude Desktop):
+**Start the MCP server** (waits over stdio for a client, e.g. Claude Desktop):
 
 ```bash
 python src/main.py
 ```
 
-**Zum manuellen Testen der Garth-Anbindung** (ohne MCP-Protokoll):
+**For manually testing the Garth integration** (without the MCP protocol):
 
 ```bash
 python src/explore_sleep.py
 ```
 
-**Zum interaktiven Testen des MCP-Servers** mit dem [MCP Inspector](https://github.com/modelcontextprotocol/inspector):
+**For interactively testing the MCP server** with the [MCP Inspector](https://github.com/modelcontextprotocol/inspector):
 
 ```bash
 npx -y @modelcontextprotocol/inspector ./venv/bin/mcp run src/mcp_server.py:server
 ```
 
-Öffnet einen Browser-Tab mit Inspector-UI, in dem sich die verfügbaren Tools direkt aufrufen lassen.
+Opens a browser tab with the Inspector UI, where the available tools can be called directly.
 
-## Verfügbare Tools
+## Available Tools
 
-| Tool | Beschreibung |
+| Tool | Description |
 |---|---|
-| `ping` | Health-Check, gibt `"pong"` zurück |
-| `get_sleep_summary(target_date)` | Zusammenfassung der Schlafdaten für ein Datum (ISO 8601, `YYYY-MM-DD`): Gesamtschlafzeit, Schlafphasen, Scores, Atemfrequenz u.a. |
+| `ping` | Health check, returns `"pong"` |
+| `get_sleep_summary(target_date)` | Summary of sleep data for a date (ISO 8601, `YYYY-MM-DD`): total sleep time, sleep phases, scores, respiration rate, and more |
 
-## Lizenz
+## License
 
 [MIT](LICENSE)
