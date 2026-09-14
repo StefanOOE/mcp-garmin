@@ -2,6 +2,10 @@
 # Add files or directories to be skipped during linting
 ignore-patterns=.*__pycache__.*,.*\.pyc
 
+# Mirrors pytest.ini's pythonpath=src, so imports like `tools.sleep` resolve
+# regardless of how pylint is invoked (editor extension, plain CLI, CI).
+init-hook='import sys; sys.path.append("src")'
+
 [MESSAGES CONTROL]
 # Disable specific warnings that might be too strict for this project
 disable=
@@ -11,7 +15,9 @@ disable=
 good-names=i,j,k,x,y,z,_,id
 
 # Regular expression matching correct function names
-function-rgx=[a-z_][a-z0-9_]{2,50}$
+# Upper bound raised to 80 (from 50) to allow descriptive pytest test names,
+# where the name itself documents the scenario being tested.
+function-rgx=[a-z_][a-z0-9_]{2,80}$
 
 # Regular expression matching correct variable names
 variable-rgx=[a-z_][a-z0-9_]{2,50}$

@@ -18,9 +18,15 @@ mcp-garmin/
 │   ├── garmin_client.py    # Garth login/session handling + data access
 │   ├── main.py              # Entry point (starts the server over stdio)
 │   └── explore_sleep.py     # Standalone script for manually testing the Garth integration
+├── tests/                    # Mirrors src/, mocks the garth boundary
+│   └── tools/
+│       ├── test_ping.py
+│       └── test_sleep.py
 ├── .env.template            # Template for credentials and settings
 ├── .pylintrc
+├── pytest.ini
 ├── requirements.txt
+├── requirements-dev.txt     # Adds pytest/pytest-cov on top of requirements.txt
 ├── LICENSE
 └── README.md
 ```
@@ -71,6 +77,16 @@ npx -y @modelcontextprotocol/inspector ./venv/bin/mcp run src/mcp_server.py:serv
 Opens a browser tab with the Inspector UI, where the available tools can be called directly.
 
 > **Known issue:** `mcp dev src/mcp_server.py:server` (the CLI's own dev command) currently fails — it spins up an isolated `uv run --with mcp==<version>` environment that's missing the `cli` extras `mcp run` itself needs. The command above works around this by pointing the Inspector directly at this project's own virtual environment instead.
+
+## Running Tests
+
+```bash
+pip install -r requirements-dev.txt
+pytest -v
+pytest --cov=src --cov-report=term-missing  # with coverage
+```
+
+Tests mock the `garth` boundary (no real network calls or credentials needed) and live under `tests/`, mirroring the `src/` structure.
 
 ## Available Tools
 
