@@ -12,7 +12,6 @@ from server_instance import server
 
 log = logging.getLogger(__name__)
 
-
 def _local_iso(raw: dict, key: str) -> str:
     """Convert a Garmin *_timestamp_local epoch-ms field to an ISO string.
 
@@ -25,7 +24,6 @@ def _local_iso(raw: dict, key: str) -> str:
         return "unknown"
     local_dt = datetime.fromtimestamp(timestamp_ms / 1000, tz=timezone.utc)
     return local_dt.replace(tzinfo=None).isoformat()
-
 
 class SleepSummary(BaseModel):
     """Pydantic model representing a sleep summary from Garmin."""
@@ -47,7 +45,6 @@ class SleepSummary(BaseModel):
     highest_respiration_value: float = Field(description="Highest breaths per minute.")
     lowest_sp_o2_value: int | None = Field(description="Lowest blood oxygen %, if measured.")
     highest_sp_o2_value: int | None = Field(description="Highest blood oxygen %, if measured.")
-
 
 @server.tool()
 def get_sleep_summary(
