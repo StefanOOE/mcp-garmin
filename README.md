@@ -13,15 +13,26 @@ mcp-garmin/
 │   ├── server_instance.py  # Creates the shared MCPServer instance
 │   ├── mcp_server.py       # Composition root: wires up the server + tools
 │   ├── tools/               # One module per MCP tool
+│   │   ├── _shared.py        # local_iso: normalizes garth's inconsistent timestamp types
 │   │   ├── ping.py
-│   │   └── sleep.py
+│   │   ├── sleep.py
+│   │   ├── hrv.py
+│   │   ├── activity.py
+│   │   ├── steps.py
+│   │   ├── weight.py
+│   │   └── training_readiness.py
 │   ├── garmin_client.py    # Garth login/session handling + data access
 │   ├── main.py              # Entry point (starts the server over stdio)
 │   └── explore_sleep.py     # Standalone script for manually testing the Garth integration
 ├── tests/                    # Mirrors src/, mocks the garth boundary
 │   └── tools/
 │       ├── test_ping.py
-│       └── test_sleep.py
+│       ├── test_sleep.py
+│       ├── test_hrv.py
+│       ├── test_activity.py
+│       ├── test_steps.py
+│       ├── test_weight.py
+│       └── test_training_readiness.py
 ├── .env.template            # Template for credentials and settings
 ├── .pylintrc
 ├── pytest.ini
@@ -93,7 +104,15 @@ Tests mock the `garth` boundary (no real network calls or credentials needed) an
 | Tool | Description |
 |---|---|
 | `ping` | Health check, returns `"pong"` |
-| `get_sleep_summary(target_date)` | Summary of sleep data for a date (ISO 8601, `YYYY-MM-DD`): total sleep time, sleep phases, scores, respiration rate, and more |
+| `get_sleep_summary(target_date)` | Summary of sleep data for a date: total sleep time, sleep phases, scores, respiration rate, and more |
+| `get_hrv_summary(target_date)` | Overnight heart rate variability: last-night/weekly averages and Garmin's status label (e.g. `BALANCED`) |
+| `get_activity_list(target_date, period)` | Overview (id, timestamp, type) of activities in the `period` days up to `target_date` |
+| `get_activity_detail(activity_id)` | Full detail for one activity: distance, duration, pace, heart rate, power, cadence, and more, depending on activity type |
+| `get_steps_summary(target_date, period)` | Daily step counts, distance, and step goal for each day in the `period` days up to `target_date` |
+| `get_weight_summary(target_date)` | Weigh-in data for a date: weight, BMI, body composition (fat/water/bone/muscle), if measured |
+| `get_training_readiness_summary(target_date)` | Garmin's most recent training readiness score and its contributing factors (sleep, HRV, recovery time, acute load, stress) for a date |
+
+All dates are ISO 8601 (`YYYY-MM-DD`).
 
 ## License
 
