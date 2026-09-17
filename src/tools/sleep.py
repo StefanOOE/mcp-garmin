@@ -2,28 +2,16 @@
 import dataclasses
 import logging
 import json
-from datetime import datetime, date, timezone
+from datetime import date
 from typing import Annotated
 from pydantic import BaseModel, Field
 from mcp.server.mcpserver.exceptions import ToolError
 from garth.exc import GarthException
 import garmin_client
 from server_instance import server
+from tools._shared import local_iso
 
 log = logging.getLogger(__name__)
-
-def _local_iso(raw: dict, key: str) -> str:
-    """Convert a Garmin *_timestamp_local epoch-ms field to an ISO string.
-
-    Garmin's API has no version field to detect a renamed/missing key against
-    (see README disclaimer), so this degrades to "unknown" instead of crashing
-    the whole tool if the field is ever absent.
-    """
-    timestamp_ms = raw.get(key)
-    if timestamp_ms is None:
-        return "unknown"
-    local_dt = datetime.fromtimestamp(timestamp_ms / 1000, tz=timezone.utc)
-    return local_dt.replace(tzinfo=None).isoformat()
 
 class SleepSummary(BaseModel):
     """Pydantic model representing a sleep summary from Garmin."""
@@ -63,8 +51,8 @@ def get_sleep_summary(
 
         overall_score = raw.get("sleep_scores", {}).get("overall", {})
         result = {
-            "sleep_start": _local_iso(raw, "sleep_start_timestamp_local"),
-            "sleep_end": _local_iso(raw, "sleep_end_timestamp_local"),
+            "sleep_start": local_iso(raw.get("sleep_start_timestamp_local")),
+            "sleep_end": local_iso(raw.get("sleep_end_timestamp_local")),
             "average_respiration_value": raw.get("average_respiration_value", 0.0),
             "lowest_respiration_value": raw.get("lowest_respiration_value", 0.0),
             "highest_respiration_value": raw.get("highest_respiration_value", 0.0),

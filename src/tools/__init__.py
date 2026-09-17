@@ -1,4 +1,4 @@
 """Tool modules. Importing this package registers every tool on the shared server."""
-from . import ping, sleep
+from . import ping, sleep, hrv, activity, weight, training_readiness, steps
 
-__all__ = ["ping", "sleep"]
+__all__ = ["ping", "sleep", "hrv", "activity", "weight", "training_readiness", "steps"]

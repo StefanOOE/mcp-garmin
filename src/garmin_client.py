@@ -29,8 +29,68 @@ def get_sleep_data(target_date: date) -> garth.SleepData | None:
     """Retrieve sleep data for the specified date using Garth API."""
     try:
         login()
-        result = garth.SleepData.get(target_date)
-        return result
+        raw = garth.SleepData.get(target_date)
+        return raw
     except GarthException as exc:
         log.error("Garth error getting sleep data: %s", exc)
+        raise
+
+def get_hrv_data(target_date: date) -> garth.HRVData | None:
+    """Retrieve heart rate variability (HRV) data for the specified date using Garth API."""
+    try:
+        login()
+        raw = garth.HRVData.get(target_date)
+        return raw
+    except GarthException as exc:
+        log.error("Garth error getting HRV data: %s", exc)
+        raise
+
+def get_activities(date_from: date, period: int) -> list[tuple[int, date, str]]:
+    """Retrieve a list of available activities (activity_id, date, type) using Garth API."""
+    try:
+        login()
+        raw = garth.FitnessActivity.list(date_from, period)
+        return [(act.activity_id, act.start_local, act.activity_type) for act in raw]
+    except GarthException as exc:
+        log.error("Garth error getting fitness activity data: %s", exc)
+        raise
+
+def get_activity_detail(activity_id: int) -> garth.Activity | None:
+    """Retrieve activity data for a specific activity ID using Garth API."""
+    try:
+        login()
+        raw = garth.Activity.get(activity_id)
+        return raw
+    except GarthException as exc:
+        log.error("Garth error getting activity data for id %d: %s", activity_id, exc)
+        raise
+
+def get_steps_data(target_date: date, period: int) -> list[garth.DailySteps]:
+    """Retrieve daily step counts for the specified date and period using Garth API."""
+    try:
+        login()
+        raw = garth.DailySteps.list(target_date, period)
+        return raw
+    except GarthException as exc:
+        log.error("Garth error getting steps data: %s", exc)
+        raise
+
+def get_weight_data(target_date: date) -> garth.WeightData | None:
+    """Retrieve weight data for the specified date using Garth API."""
+    try:
+        login()
+        raw = garth.WeightData.get(target_date)
+        return raw
+    except GarthException as exc:
+        log.error("Garth error getting weight data: %s", exc)
+        raise
+
+def get_training_readiness_data(target_date: date) -> list[garth.TrainingReadinessData] | None:
+    """Retrieve training readiness data for the specified date using Garth API."""
+    try:
+        login()
+        raw = garth.TrainingReadinessData.get(target_date)
+        return raw
+    except GarthException as exc:
+        log.error("Garth error getting training readiness data: %s", exc)
         raise
