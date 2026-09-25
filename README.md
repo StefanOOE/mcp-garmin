@@ -18,6 +18,7 @@ mcp-garmin/
 │   │   ├── sleep.py
 │   │   ├── hrv.py
 │   │   ├── activity.py
+│   │   ├── strength.py
 │   │   ├── steps.py
 │   │   ├── weight.py
 │   │   └── training_readiness.py
@@ -30,6 +31,7 @@ mcp-garmin/
 │       ├── test_sleep.py
 │       ├── test_hrv.py
 │       ├── test_activity.py
+│       ├── test_strength.py
 │       ├── test_steps.py
 │       ├── test_weight.py
 │       └── test_training_readiness.py
@@ -108,6 +110,7 @@ Tests mock the `garth` boundary (no real network calls or credentials needed) an
 | `get_hrv_summary(target_date)` | Overnight heart rate variability: last-night/weekly averages and Garmin's status label (e.g. `BALANCED`) |
 | `get_activity_list(target_date, period)` | Overview (id, timestamp, type) of activities in the `period` days up to `target_date` |
 | `get_activity_detail(activity_id)` | Full detail for one activity: distance, duration, pace, heart rate, power, cadence, and more, depending on activity type |
+| `get_strength_exercises(activity_id, include_rest=False)` | Sets of a strength training activity: exercise (category/name), repetitions, weight in kg, duration and UTC start time; REST sets only on request |
 | `get_steps_summary(target_date, period)` | Daily step counts, distance, and step goal for each day in the `period` days up to `target_date` |
 | `get_weight_summary(target_date)` | Weigh-in data for a date: weight, BMI, body composition (fat/water/bone/muscle), if measured |
 | `get_training_readiness_summary(target_date)` | Garmin's most recent training readiness score and its contributing factors (sleep, HRV, recovery time, acute load, stress) for a date |

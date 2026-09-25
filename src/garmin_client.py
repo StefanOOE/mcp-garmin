@@ -94,3 +94,16 @@ def get_training_readiness_data(target_date: date) -> list[garth.TrainingReadine
     except GarthException as exc:
         log.error("Garth error getting training readiness data: %s", exc)
         raise
+
+def get_exercise_sets(activity_id: int) -> dict | None:
+    """Retrieve the exercise sets (strength training) of an activity using Garth API.
+
+    garth-ng has no typed model for this endpoint, so the raw JSON dict is returned.
+    """
+    try:
+        login()
+        raw = garth.connectapi(f"/activity-service/activity/{activity_id}/exerciseSets")
+        return raw
+    except GarthException as exc:
+        log.error("Garth error getting exercise sets for id %d: %s", activity_id, exc)
+        raise
