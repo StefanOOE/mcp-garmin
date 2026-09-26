@@ -7,6 +7,7 @@ from mcp.server.mcpserver.exceptions import ToolError
 from garth.exc import GarthException
 import garmin_client
 from server_instance import server
+from tools._shared import grams_to_kg, utc_iso
 
 log = logging.getLogger(__name__)
 
@@ -43,25 +44,18 @@ class StrengthWorkout(BaseModel):
         description="Sets of the activity in chronological order."
     )
 
-def _to_utc_iso(start_time: str | None) -> str | None:
-    """Mark Garmin's offset-less UTC startTime (e.g. '2026-09-25T13:32:30.0') as UTC."""
-    return f"{start_time}Z" if start_time else None
-
-def _to_kg(weight_grams: float | None) -> float | None:
-    """Convert Garmin's weight in grams to kilograms; negative values mean 'no weight'."""
-    if weight_grams is None or weight_grams < 0:
-        return None
-    return weight_grams / 1000
-
 def _to_exercise_set(raw_set: dict) -> ExerciseSet:
     """Map one raw Garmin exercise set to an ExerciseSet (first exercise candidate wins)."""
     exercises = raw_set.get("exercises") or [{}]
+    weight = raw_set.get("weight")
+    if weight is not None and weight < 0:  # Garmin marks "no weight" (REST sets) as -1
+        weight = None
     return ExerciseSet(
         set_type=raw_set.get("setType", "unknown"),
-        start_utc=_to_utc_iso(raw_set.get("startTime")),
+        start_utc=utc_iso(raw_set.get("startTime")),
         duration=raw_set.get("duration"),
         repetitions=raw_set.get("repetitionCount"),
-        weight_kg=_to_kg(raw_set.get("weight")),
+        weight_kg=grams_to_kg(weight),
         exercise_category=exercises[0].get("category"),
         exercise_name=exercises[0].get("name"),
     )

@@ -9,13 +9,9 @@ from mcp.server.mcpserver.exceptions import ToolError
 from garth.exc import GarthException
 import garmin_client
 from server_instance import server
-from tools._shared import local_iso
+from tools._shared import grams_to_kg, local_iso
 
 log = logging.getLogger(__name__)
-
-def _grams_to_kg(grams: float | None) -> float | None:
-    """Convert a Garmin gram value to kilograms, passing None through unchanged."""
-    return grams / 1000 if grams is not None else None
 
 class WeightSummary(BaseModel):
     """Pydantic model representing a weight summary from Garmin."""
@@ -80,13 +76,13 @@ def get_weight_summary(
             "date": calendar_date.isoformat() if calendar_date else "unknown",
             "timestamp": local_iso(raw.get("timestamp_local")),
             "source_type": raw.get("source_type", "UNKNOWN"),
-            "weight_kg": _grams_to_kg(raw.get("weight")) or 0.0,
-            "weight_delta_kg": _grams_to_kg(raw.get("weight_delta")),
+            "weight_kg": grams_to_kg(raw.get("weight")) or 0.0,
+            "weight_delta_kg": grams_to_kg(raw.get("weight_delta")),
             "bmi": raw.get("bmi"),
             "body_fat_percent": raw.get("body_fat"),
             "body_water_percent": raw.get("body_water"),
-            "bone_mass_kg": _grams_to_kg(raw.get("bone_mass")),
-            "muscle_mass_kg": _grams_to_kg(raw.get("muscle_mass")),
+            "bone_mass_kg": grams_to_kg(raw.get("bone_mass")),
+            "muscle_mass_kg": grams_to_kg(raw.get("muscle_mass")),
             "physique_rating": raw.get("physique_rating"),
             "visceral_fat": raw.get("visceral_fat"),
             "metabolic_age": raw.get("metabolic_age"),
