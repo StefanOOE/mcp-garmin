@@ -1,13 +1,14 @@
 """Strength training exercise sets tool backed by garmin_client/garth."""
 import logging
 import json
+from datetime import datetime, timedelta
 from typing import Annotated
 from pydantic import BaseModel, Field
 from mcp.server.mcpserver.exceptions import ToolError
 from garth.exc import GarthException
 import garmin_client
 from server_instance import server
-from tools._shared import grams_to_kg, utc_iso
+from tools._shared import grams_to_kg, local_iso
 
 log = logging.getLogger(__name__)
 
@@ -16,8 +17,8 @@ class ExerciseSet(BaseModel):
     set_type: str = Field(
         description="Type of the set: ACTIVE (exercise performed) or REST (pause)."
     )
-    start_utc: str | None = Field(
-        description="ISO 8601 timestamp in UTC when the set started (not set for REST sets)."
+    start: str = Field(
+        description="ISO 8601 local timestamp when the set started ('unknown' for REST sets)."
     )
     duration: float | None = Field(
         description="Duration of the set, in seconds."
@@ -44,7 +45,26 @@ class StrengthWorkout(BaseModel):
         description="Sets of the activity in chronological order."
     )
 
-def _to_exercise_set(raw_set: dict) -> ExerciseSet:
+def _utc_offset(activity_id: int) -> timedelta | None:
+    """Local-time offset of the activity, from its start time in local time vs. GMT.
+
+    The exerciseSets endpoint only has UTC start times, so this costs one extra
+    activity detail call. None if the activity summary lacks either start time.
+    """
+    summary = getattr(garmin_client.get_activity_detail(activity_id), "summary", None)
+    start_local = getattr(summary, "start_time_local", None)
+    start_gmt = getattr(summary, "start_time_gmt", None)
+    if start_local is None or start_gmt is None:
+        return None
+    return start_local - start_gmt
+
+def _to_local(start_time_utc: str | None, offset: timedelta | None) -> datetime | None:
+    """Shift Garmin's offset-less UTC startTime (e.g. '2026-01-15T09:00:00.0') to local time."""
+    if start_time_utc is None or offset is None:
+        return None
+    return datetime.fromisoformat(start_time_utc) + offset
+
+def _to_exercise_set(raw_set: dict, offset: timedelta | None) -> ExerciseSet:
     """Map one raw Garmin exercise set to an ExerciseSet (first exercise candidate wins)."""
     exercises = raw_set.get("exercises") or [{}]
     weight = raw_set.get("weight")
@@ -52,7 +72,7 @@ def _to_exercise_set(raw_set: dict) -> ExerciseSet:
         weight = None
     return ExerciseSet(
         set_type=raw_set.get("setType", "unknown"),
-        start_utc=utc_iso(raw_set.get("startTime")),
+        start=local_iso(_to_local(raw_set.get("startTime"), offset)),
         duration=raw_set.get("duration"),
         repetitions=raw_set.get("repetitionCount"),
         weight_kg=grams_to_kg(weight),
@@ -79,7 +99,8 @@ def get_strength_exercises(
         if not raw_sets:
             raise ToolError(f"No exercise sets found for activity ID {activity_id}.")
 
-        sets = [_to_exercise_set(raw_set) for raw_set in raw_sets]
+        offset = _utc_offset(activity_id)
+        sets = [_to_exercise_set(raw_set, offset) for raw_set in raw_sets]
         if not include_rest:
             sets = [exercise_set for exercise_set in sets if exercise_set.set_type != "REST"]
         return StrengthWorkout(activity_id=activity_id, sets=sets)
@@ -96,7 +117,7 @@ def get_strength_exercises(
 #    "repetitionCount": 8,
 #    "weight": 40000.0,                    <- grams
 #    "setType": "ACTIVE",
-#    "startTime": "2026-01-15T09:02:00.0", <- UTC (local start was 10:02)
+#    "startTime": "2026-01-15T09:02:00.0", <- UTC, shifted to local via _utc_offset
 #    "wktStepIndex": null,
 #    "messageIndex": null,
 #    "avgConcentricMeanVelocity": null,    <- ~20 velocity-based-training fields,

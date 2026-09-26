@@ -33,15 +33,6 @@ def _(timestamp: datetime) -> str:
     """
     return timestamp.replace(tzinfo=None).isoformat()
 
-def utc_iso(timestamp: str | None) -> str | None:
-    """Mark an offset-less UTC timestamp string from Garmin (e.g. '2026-01-15T09:00:00.0')
-    as UTC by appending 'Z', so it can't be mistaken for local time.
-
-    Unlike local_iso, a missing value stays None instead of "unknown": callers use
-    this for fields that are legitimately absent, not only for renamed/missing keys.
-    """
-    return f"{timestamp}Z" if timestamp else None
-
 def grams_to_kg(grams: float | None) -> float | None:
     """Convert a Garmin gram value to kilograms, passing None through unchanged."""
     return grams / 1000 if grams is not None else None
