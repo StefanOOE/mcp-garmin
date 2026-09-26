@@ -297,7 +297,7 @@ def get_activity_detail(
 # ============= sample activity data from garth (stretching session)=============
 # Activity
 # (
-#  activity_id=24379681126,
+#  activity_id=12345678902,
 #  activity_name='Stretch+ Pre Run/Workout',
 #  start_time_local=None,
 #  start_time_gmt=None,

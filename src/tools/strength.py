@@ -88,15 +88,15 @@ def get_strength_exercises(
 
 # ============= sample exercise sets data from garth (strength session, shortened)=============
 # {
-#  "activityId": 24494119479,
+#  "activityId": 12345678903,
 #  "exerciseSets": [
 #   {
 #    "exercises": [{"category": "SQUAT", "name": "BARBELL_BACK_SQUAT", "probability": 100.0}],
 #    "duration": 48.601,
 #    "repetitionCount": 8,
-#    "weight": 20000.0,                    <- grams
+#    "weight": 40000.0,                    <- grams
 #    "setType": "ACTIVE",
-#    "startTime": "2026-09-25T13:34:20.0", <- UTC (local start was 15:34)
+#    "startTime": "2026-01-15T09:02:00.0", <- UTC (local start was 10:02)
 #    "wktStepIndex": null,
 #    "messageIndex": null,
 #    "avgConcentricMeanVelocity": null,    <- ~20 velocity-based-training fields,

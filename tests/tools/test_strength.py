@@ -10,9 +10,9 @@ from tools.strength import get_strength_exercises
 @pytest.fixture(name="fake_exercise_sets")
 def _build_fake_exercise_sets() -> dict:
     """A minimal, realistic fake exerciseSets response, built from real field
-    values recorded during manual testing (strength session 2026-09-25)."""
+    values recorded during manual testing, with IDs, times and weights anonymized."""
     return {
-        "activityId": 24494119479,
+        "activityId": 12345678903,
         "exerciseSets": [
             {
                 "exercises": [{"category": "SQUAT", "name": None, "probability": 100.0}],
@@ -20,7 +20,7 @@ def _build_fake_exercise_sets() -> dict:
                 "repetitionCount": 10,
                 "weight": 0.0,
                 "setType": "ACTIVE",
-                "startTime": "2026-09-25T13:32:30.0",
+                "startTime": "2026-01-15T09:00:00.0",
             },
             {
                 "exercises": [],
@@ -36,9 +36,9 @@ def _build_fake_exercise_sets() -> dict:
                 ],
                 "duration": 48.601,
                 "repetitionCount": 8,
-                "weight": 20000.0,
+                "weight": 40000.0,
                 "setType": "ACTIVE",
-                "startTime": "2026-09-25T13:34:20.0",
+                "startTime": "2026-01-15T09:02:00.0",
             },
         ],
     }
@@ -50,22 +50,22 @@ def test_get_strength_exercises_maps_fields(mock_connectapi, mock_login, fake_ex
     from grams to kg, and the UTC start time is marked as such."""
     mock_connectapi.return_value = fake_exercise_sets
 
-    result = get_strength_exercises(24494119479)
+    result = get_strength_exercises(12345678903)
 
-    assert result.activity_id == 24494119479
+    assert result.activity_id == 12345678903
     assert len(result.sets) == 2
     bodyweight, barbell = result.sets
     assert bodyweight.set_type == "ACTIVE"
-    assert bodyweight.start_utc == "2026-09-25T13:32:30.0Z"
+    assert bodyweight.start_utc == "2026-01-15T09:00:00.0Z"
     assert bodyweight.repetitions == 10
     assert bodyweight.weight_kg == 0.0
     assert bodyweight.exercise_category == "SQUAT"
     assert bodyweight.exercise_name is None
-    assert barbell.weight_kg == 20.0
+    assert barbell.weight_kg == 40.0
     assert barbell.exercise_name == "BARBELL_BACK_SQUAT"
     assert barbell.duration == 48.601
     mock_connectapi.assert_called_once_with(
-        "/activity-service/activity/24494119479/exerciseSets"
+        "/activity-service/activity/12345678903/exerciseSets"
     )
     mock_login.assert_called_once()
 
@@ -77,7 +77,7 @@ def test_get_strength_exercises_includes_rest_on_request(
     """With include_rest, REST sets are returned with no weight/exercise/start."""
     mock_connectapi.return_value = fake_exercise_sets
 
-    result = get_strength_exercises(24494119479, include_rest=True)
+    result = get_strength_exercises(12345678903, include_rest=True)
 
     assert len(result.sets) == 3
     rest = result.sets[1]

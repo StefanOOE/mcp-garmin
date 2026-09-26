@@ -97,18 +97,18 @@ def get_weight_summary(
 #
 # WeightData
 # (
-# Weight=96309,
+# Weight=80000,
 # timestamp_local=1789540364000,
-# sample_pk=1789533191171,
+# sample_pk=1,
 # calendar_date=datetime.date(2026, 9, 16),
 # source_type='INDEX_SCALE',
 # timestamp_gmt=1789533164000,
-# weight_delta=899.9999999999915,
-# bmi=28.799999237060547,
-# body_fat=29.0,
-# body_water=51.8,
-# bone_mass=4940,
-# muscle_mass=35680,
+# weight_delta=500.0,
+# bmi=24.5,
+# body_fat=20.0,
+# body_water=55.0,
+# bone_mass=3500,
+# muscle_mass=38000,
 # physique_rating=None,
 # visceral_fat=None,
 # metabolic_age=None

@@ -34,7 +34,7 @@ def _(timestamp: datetime) -> str:
     return timestamp.replace(tzinfo=None).isoformat()
 
 def utc_iso(timestamp: str | None) -> str | None:
-    """Mark an offset-less UTC timestamp string from Garmin (e.g. '2026-09-25T13:32:30.0')
+    """Mark an offset-less UTC timestamp string from Garmin (e.g. '2026-01-15T09:00:00.0')
     as UTC by appending 'Z', so it can't be mistaken for local time.
 
     Unlike local_iso, a missing value stays None instead of "unknown": callers use

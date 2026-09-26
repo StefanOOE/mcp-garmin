@@ -13,15 +13,15 @@ from tools.training_readiness import get_training_readiness_summary
 @pytest.fixture(name="fake_readiness_data")
 def _build_fake_readiness_data() -> list[garth.TrainingReadinessData]:
     """A minimal, realistic fake Garth TrainingReadinessData list, built from real
-    field values recorded during manual testing (see session history). Garmin
+    field values recorded during manual testing, IDs anonymized. Garmin
     returns multiple readings per day, most recent first."""
     return [
         garth.TrainingReadinessData(
-            user_profile_pk=5873521,
+            user_profile_pk=1,
             calendar_date=date(2026, 9, 17),
             timestamp=datetime(2026, 9, 17, 3, 58, 16),
             timestamp_local=datetime(2026, 9, 17, 5, 58, 16),
-            device_id=3422829035,
+            device_id=1,
             level="MODERATE",
             feedback_long="MOD_RT_LOW_SS_MOD",
             feedback_short="GOOD_SLEEP_HISTORY",

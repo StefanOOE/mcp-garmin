@@ -13,10 +13,10 @@ from tools.activity import get_activity_detail, get_activity_list
 @pytest.fixture(name="fake_fitness_activities")
 def _build_fake_fitness_activities() -> list[FitnessActivity]:
     """A minimal, realistic fake Garth FitnessActivity list, built from real field
-    values recorded during manual testing (see session history)."""
+    values recorded during manual testing, with IDs and names anonymized."""
     return [
         FitnessActivity(
-            activity_id=24392494057,
+            activity_id=12345678901,
             start_local=datetime(2026, 9, 17, 8, 0, 58),
             activity_type="cycling",
             workout_group_enumerator=0,
@@ -26,7 +26,7 @@ def _build_fake_fitness_activities() -> list[FitnessActivity]:
 @pytest.fixture(name="fake_activity_detail")
 def _build_fake_activity_detail() -> GarthActivity:
     """A minimal, realistic fake Garth Activity response, built from real field
-    values recorded during manual testing (see session history)."""
+    values recorded during manual testing, with IDs and names anonymized."""
     summary = Summary(
         start_time_local=datetime(2026, 9, 17, 8, 0, 58),
         start_time_gmt=datetime(2026, 9, 17, 6, 0, 58),
@@ -58,8 +58,8 @@ def _build_fake_activity_detail() -> GarthActivity:
         min_activity_lap_duration=3901.0,
     )
     return GarthActivity(
-        activity_id=24392494057,
-        activity_name="Duravel Virtuelles Radfahren",
+        activity_id=12345678901,
+        activity_name="Virtuelles Radfahren",
         activity_type=ActivityType(
             type_id=152,
             type_key="virtual_ride",
@@ -68,11 +68,11 @@ def _build_fake_activity_detail() -> GarthActivity:
             restricted=False,
             trimmable=True,
         ),
-        user_profile_id=5873521,
+        user_profile_id=1,
         is_multi_sport_parent=False,
         event_type=EventType(type_id=9, type_key="uncategorized", sort_order=10),
         summary=summary,
-        location_name="Duravel",
+        location_name="Sample Route",
     )
 
 
@@ -86,7 +86,7 @@ def test_get_activity_list_maps_fields(mock_list, mock_login, fake_fitness_activ
     result = get_activity_list(date(2026, 9, 17), 1)
 
     assert len(result) == 1
-    assert result[0].id == 24392494057
+    assert result[0].id == 12345678901
     assert result[0].timestamp == "2026-09-17T08:00:58"
     assert result[0].type == "cycling"
     mock_login.assert_called_once()
@@ -98,10 +98,10 @@ def test_get_activity_detail_maps_fields(mock_get, mock_login, fake_activity_det
     in the returned ActivityDetail (nested summary fields, timestamp)."""
     mock_get.return_value = fake_activity_detail
 
-    result = get_activity_detail(24392494057)
+    result = get_activity_detail(12345678901)
 
-    assert result.id == 24392494057
-    assert result.name == "Duravel Virtuelles Radfahren"
+    assert result.id == 12345678901
+    assert result.name == "Virtuelles Radfahren"
     assert result.start == "2026-09-17T08:00:58"
     assert result.distance == 28647.65
     assert result.duration == 3901.0
@@ -126,7 +126,7 @@ def test_get_activity_detail_raises_tool_error_when_no_data(mock_get, mock_login
     mock_get.return_value = None
 
     with pytest.raises(ToolError, match="No activity data found"):
-        get_activity_detail(24392494057)
+        get_activity_detail(12345678901)
     mock_login.assert_called_once()
 
 @dataclasses.dataclass
