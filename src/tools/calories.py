@@ -31,6 +31,30 @@ class CalorieSummary(BaseModel):
     calorie_goal: int | None = Field(
         description="Net calorie goal configured in Garmin Connect, if set."
     )
+    projected_total_kilocalories: float | None = Field(
+        description="Projected total for the whole day, as shown on the watch: resting calories "
+                    "extrapolated to 24 h plus active calories so far. Equals total_kilocalories "
+                    "for completed days. Use this for today's calorie deficit."
+    )
+    is_complete_day: bool = Field(
+        description="False while the day is still being recorded (today), true otherwise."
+    )
+
+DAY_MS = 24 * 60 * 60 * 1000
+
+def _projection(raw: dict) -> tuple[float | None, bool]:
+    """Garmin's daily projection: resting calories scaled to 24 h + active calories so far.
+
+    durationInMilliseconds is the recorded span of the day; below 24 h the day is still open.
+    """
+    total = raw.get("totalKilocalories")
+    duration = raw.get("durationInMilliseconds")
+    if not duration or duration >= DAY_MS:
+        return total, True
+    bmr, active = raw.get("bmrKilocalories"), raw.get("activeKilocalories")
+    if bmr is None or active is None:
+        return total, False
+    return round(bmr / duration * DAY_MS + active), False
 
 @server.tool()
 def get_calorie_summary(
@@ -43,7 +67,8 @@ def get_calorie_summary(
     ] = 1,
 ) -> list[CalorieSummary]:
     """Tool to retrieve the daily calorie expenditure (total = active + resting calories)
-    for a target date and the days before it."""
+    for a target date and the days before it. For today it also returns Garmin's projection
+    for the whole day (projected_total_kilocalories), which is the value shown on the watch."""
     try:
         summaries = garmin_client.get_daily_summaries(target_date, period)
     except GarthException as exc:
@@ -52,12 +77,15 @@ def get_calorie_summary(
     result = []
     for raw in summaries:
         log.debug("Raw daily summary: %s", json.dumps(raw, indent=2, default=str))
+        projected, complete = _projection(raw)
         result.append(CalorieSummary(
             date=raw.get("calendarDate", "unknown"),
             total_kilocalories=raw.get("totalKilocalories"),
             active_kilocalories=raw.get("activeKilocalories"),
             resting_kilocalories=raw.get("bmrKilocalories"),
             calorie_goal=raw.get("netCalorieGoal"),
+            projected_total_kilocalories=projected,
+            is_complete_day=complete,
         ))
     return result
 
@@ -70,4 +98,7 @@ def get_calorie_summary(
 #   "bmrKilocalories": 2242.0,
 #   "wellnessKilocalories": 2612.0,
 #   "netCalorieGoal": 2000,
-#   "restingCaloriesFromActivity": 119.0
+#   "restingCaloriesFromActivity": 119.0,
+#   "durationInMilliseconds": 86400000
+# today at 15:20 (open day): bmr 1425, active 340, duration 55200000 ms
+#   -> 1425 / 15.33 h * 24 h + 340 = 2570 (watch showed 2571)

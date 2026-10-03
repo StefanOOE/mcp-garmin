@@ -11,9 +11,10 @@ def _build_fake_summaries() -> list[dict]:
     """Two days of the raw daily summary JSON (calorie fields as returned by Garmin, anonymized)."""
     return [
         {"calendarDate": "2026-10-01", "totalKilocalories": 2701.0, "activeKilocalories": 459.0,
-         "bmrKilocalories": 2242.0, "netCalorieGoal": 2000, "totalSteps": 8123},
+         "bmrKilocalories": 2242.0, "netCalorieGoal": 2000, "totalSteps": 8123,
+         "durationInMilliseconds": 86400000},
         {"calendarDate": "2026-10-02", "totalKilocalories": 2612.0, "activeKilocalories": 370.0,
-         "bmrKilocalories": 2242.0, "netCalorieGoal": 2000},
+         "bmrKilocalories": 2242.0, "netCalorieGoal": 2000, "durationInMilliseconds": 86400000},
     ]
 
 @patch("garmin_client.login")
@@ -68,3 +69,30 @@ def test_get_calorie_summary_wraps_garth_errors(mock_connectapi, mock_login):
 
     with pytest.raises(ToolError, match="calorie data"):
         get_calorie_summary(date(2026, 10, 2), 1)
+
+@patch("garmin_client.login")
+@patch("garth.connectapi")
+def test_get_calorie_summary_projects_open_day_like_the_watch(mock_connectapi, mock_login):
+    """Today (recorded < 24 h): resting calories scaled to 24 h + active so far.
+    Real reading at 15:20 - the watch showed 2571."""
+    mock_connectapi.return_value = {
+        "calendarDate": "2026-10-03", "totalKilocalories": 1765.0, "activeKilocalories": 340.0,
+        "bmrKilocalories": 1425.0, "durationInMilliseconds": 55200000,
+    }
+
+    result = get_calorie_summary(date(2026, 10, 3))
+
+    assert result[0].is_complete_day is False
+    assert result[0].total_kilocalories == 1765.0
+    assert result[0].projected_total_kilocalories == 2570
+
+@patch("garmin_client.login")
+@patch("garth.connectapi")
+def test_get_calorie_summary_complete_day_projection_equals_total(mock_connectapi, mock_login, fake_summaries):
+    """For a finished day the projection is simply the total."""
+    mock_connectapi.return_value = fake_summaries[1]
+
+    result = get_calorie_summary(date(2026, 10, 2))
+
+    assert result[0].is_complete_day is True
+    assert result[0].projected_total_kilocalories == result[0].total_kilocalories
