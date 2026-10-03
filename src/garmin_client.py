@@ -1,6 +1,6 @@
 """This module provides a client for interacting with the Garmin API using the Garth library."""
 import logging
-from datetime import date
+from datetime import date, timedelta
 import garth
 from garth.exc import GarthException
 import config
@@ -106,4 +106,23 @@ def get_exercise_sets(activity_id: int) -> dict | None:
         return raw
     except GarthException as exc:
         log.error("Garth error getting exercise sets for id %d: %s", activity_id, exc)
+        raise
+
+def get_daily_summaries(target_date: date, period: int) -> list[dict]:
+    """Retrieve the raw daily user summaries for the `period` days up to `target_date`.
+
+    garth-ng's DailySummary model drops bmrKilocalories (resting calories), so the
+    raw JSON of the daily summary endpoint is used, one request per day.
+    """
+    try:
+        login()
+        days = [target_date - timedelta(days=offset) for offset in range(period - 1, -1, -1)]
+        summaries = []
+        for day in days:
+            raw = garth.connectapi(f"/usersummary-service/usersummary/daily/?calendarDate={day.isoformat()}")
+            if raw:
+                summaries.append(raw)
+        return summaries
+    except GarthException as exc:
+        log.error("Garth error getting daily summaries: %s", exc)
         raise
