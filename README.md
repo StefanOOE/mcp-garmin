@@ -20,6 +20,7 @@ mcp-garmin/
 │   │   ├── activity.py
 │   │   ├── strength.py
 │   │   ├── steps.py
+│   │   ├── calories.py
 │   │   ├── weight.py
 │   │   └── training_readiness.py
 │   ├── garmin_client.py    # Garth login/session handling + data access
@@ -33,6 +34,7 @@ mcp-garmin/
 │       ├── test_activity.py
 │       ├── test_strength.py
 │       ├── test_steps.py
+│       ├── test_calories.py
 │       ├── test_weight.py
 │       └── test_training_readiness.py
 ├── .env.template            # Template for credentials and settings
@@ -100,6 +102,31 @@ pytest --cov=src --cov-report=term-missing  # with coverage
 ```
 
 Tests mock the `garth` boundary (no real network calls or credentials needed) and live under `tests/`, mirroring the `src/` structure.
+
+## Deployment (Hermes on the ThinkCentre)
+
+This repo is a development repo only — nothing runs from it. Hermes runs the server from a
+read-only release built from a **committed** ref:
+
+```bash
+git commit …                                  # changes must be committed to be deployable
+sudo hermes-deploy mcp-garmin --restart       # → /opt/hermes-apps/mcp-garmin/releases/<sha>, restarts the gateways
+sudo hermes-deploy --rollback mcp-garmin      # back to the previous release
+```
+
+Hermes registration (`mcp_servers` in the profile's `config.yaml`, runs as user `hermes`):
+
+```yaml
+mcp-garmin:
+  command: /opt/hermes-apps/mcp-garmin/current/.venv/bin/python
+  args: [/opt/hermes-apps/mcp-garmin/current/src/main.py]
+  env:
+    GARMIN_USERNAME: ${GARMIN_USERNAME}
+    GARMIN_PASSWORD: ${GARMIN_PASSWORD}
+    GARTH_SESSION_DIR: ${GARTH_SESSION_DIR}   # /home/hermes/.garth
+```
+
+`hermes-deploy` and the overall layout are documented in the `tc-ops` repo.
 
 ## Available Tools
 
