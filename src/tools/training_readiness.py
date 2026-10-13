@@ -8,6 +8,7 @@ from pydantic import BaseModel, Field
 from mcp.server.mcpserver.exceptions import ToolError
 from garth.exc import GarthException
 import garmin_client
+from tools._shared import NIGHT_DATE_DESCRIPTION, no_night_data
 from server_instance import server
 
 log = logging.getLogger(__name__)
@@ -75,14 +76,14 @@ class TrainingReadinessSummary(BaseModel):
 @server.tool()
 def get_training_readiness_summary(
     target_date: Annotated[
-        date, Field(description="Date in ISO 8601 format (YYYY-MM-DD), e.g. 2023-09-13")
+        date, Field(description=NIGHT_DATE_DESCRIPTION)
     ]
 ) -> TrainingReadinessSummary:
     """Tool to retrieve the most recent training readiness summary for a specific date."""
     try:
         readiness_data = garmin_client.get_training_readiness_data(target_date)
         if not readiness_data:
-            raise ToolError("No training readiness data found for the specified date.")
+            raise ToolError(no_night_data("training readiness data", target_date))
 
         # Garmin recalculates readiness several times a day; verified live against
         # a 3-entry response that index 0 is the newest (descending by timestamp).

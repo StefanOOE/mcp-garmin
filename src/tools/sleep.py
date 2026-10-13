@@ -9,7 +9,7 @@ from mcp.server.mcpserver.exceptions import ToolError
 from garth.exc import GarthException
 import garmin_client
 from server_instance import server
-from tools._shared import local_iso
+from tools._shared import NIGHT_DATE_DESCRIPTION, local_iso, no_night_data
 
 log = logging.getLogger(__name__)
 
@@ -37,14 +37,14 @@ class SleepSummary(BaseModel):
 @server.tool()
 def get_sleep_summary(
     target_date: Annotated[
-        date, Field(description="Date in ISO 8601 format (YYYY-MM-DD), e.g. 2023-09-13")
+        date, Field(description=NIGHT_DATE_DESCRIPTION)
     ]
 ) -> SleepSummary:
     """Tool to retrieve sleep summary data for a specific date."""
     try:
         sleep_data = garmin_client.get_sleep_data(target_date)
         if sleep_data is None:
-            raise ToolError("No sleep data found for the specified date.")
+            raise ToolError(no_night_data("sleep data", target_date))
 
         raw = dataclasses.asdict(sleep_data.daily_sleep_dto)
         log.debug("Raw sleep data: %s", json.dumps(raw, indent=2, default=str))

@@ -90,6 +90,22 @@ def test_get_hrv_summary_missing_fields_fall_back_instead_of_crashing(
     assert result.hrv_sleep_start == "2026-09-12T22:27:14"
     assert result.hrv_sleep_end == "unknown"
     assert result.hrv_feedback == "unknown"
-    assert result.hrv_last_night_avg == 0.0
-    assert result.hrv_weekly_avg == 0.0
+    assert result.hrv_last_night_avg is None  # no value is not the same as 0 ms
+    assert result.hrv_weekly_avg is None
+    mock_login.assert_called_once()
+
+
+@patch("garmin_client.login")
+@patch("garth.HRVData.get")
+def test_get_hrv_summary_without_last_night_average(
+    mock_hrv_data_get, mock_login, fake_hrv_data
+):
+    """Garmin can deliver a night without an HRV average; that is None, not a crash."""
+    mock_hrv_data_get.return_value = dataclasses.replace(
+        fake_hrv_data,
+        hrv_summary=dataclasses.replace(fake_hrv_data.hrv_summary, last_night_avg=None))
+
+    result = get_hrv_summary(date(2026, 9, 13))
+
+    assert result.hrv_last_night_avg is None and result.hrv_weekly_avg == 45
     mock_login.assert_called_once()

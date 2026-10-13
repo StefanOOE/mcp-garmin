@@ -2,6 +2,17 @@
 from datetime import datetime, timezone
 from functools import singledispatch
 
+# Garmin files a night (sleep, overnight HRV, morning readiness) under the day the user woke up.
+NIGHT_DATE_DESCRIPTION = (
+    "Day the user woke up, ISO 8601 (YYYY-MM-DD). Garmin files a night under the morning after it: "
+    "for 'last night' use today's date, for the night before yesterday's date.")
+
+
+def no_night_data(what: str, target_date) -> str:
+    """Error text for a night without data, with the two usual causes."""
+    return (f"No {what} found for {target_date}. A night is filed under the day the user woke up "
+            "('last night' = today), and it only appears after the watch has synced.")
+
 @singledispatch
 def local_iso(timestamp) -> str:
     """Convert a Garmin timestamp or a *_timestamp_local epoch-ms field to an ISO string.
