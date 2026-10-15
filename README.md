@@ -103,30 +103,21 @@ pytest --cov=src --cov-report=term-missing  # with coverage
 
 Tests mock the `garth` boundary (no real network calls or credentials needed) and live under `tests/`, mirroring the `src/` structure.
 
-## Deployment (Hermes on the ThinkCentre)
+## Deployment (Hermes)
 
-This repo is a development repo only — nothing runs from it. Hermes runs the server from a
-read-only release built from a **committed** ref:
+Install it with its own venv (see Development above).
 
-```bash
-git commit …                                  # changes must be committed to be deployable
-sudo hermes-deploy mcp-garmin --restart       # → /opt/hermes-apps/mcp-garmin/releases/<sha>, restarts the gateways
-sudo hermes-deploy --rollback mcp-garmin      # back to the previous release
-```
-
-Hermes registration (`mcp_servers` in the profile's `config.yaml`, runs as user `hermes`):
+Hermes registration (`mcp_servers` in the profile's `config.yaml`):
 
 ```yaml
 mcp-garmin:
-  command: /opt/hermes-apps/mcp-garmin/current/.venv/bin/python
-  args: [/opt/hermes-apps/mcp-garmin/current/src/main.py]
+  command: /path/to/mcp-garmin/.venv/bin/python
+  args: [/path/to/mcp-garmin/src/main.py]
   env:
     GARMIN_USERNAME: ${GARMIN_USERNAME}
     GARMIN_PASSWORD: ${GARMIN_PASSWORD}
-    GARTH_SESSION_DIR: ${GARTH_SESSION_DIR}   # /home/hermes/.garth
+    GARTH_SESSION_DIR: ${GARTH_SESSION_DIR}   # e.g. ~/.garth
 ```
-
-`hermes-deploy` and the overall layout are documented in the `tc-ops` repo.
 
 ## Available Tools
 
